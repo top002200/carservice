@@ -1,0 +1,27 @@
+body, html {
+    margin: 0;            /* ไม่ให้มี margin */
+    padding: 0;           /* ไม่ให้มี padding */
+    width: 100%;          /* กำหนดความกว้างให้เต็ม */
+    height: 100%;         /* กำหนดความสูงให้เต็ม */
+    display: flex;        /* ใช้ flexbox */
+    flex-direction: column; /* ตั้งค่าให้เป็น column */
+}
+
+
+/* ปรับแต่งสีสำหรับ table-danger และ table-warning */
+.table-danger {
+  background-color: #ff4d4d !important; /* สีแดงที่สดขึ้น */
+  color: #ffffff !important;
+}
+
+.table-warning {
+  background-color: #ffc107 !important; /* สีเหลืองที่สดใสขึ้น */
+  color: #333333 !important;
+}
+
+/* เพิ่มความสว่างให้แถวเมื่อ hover */
+.table-danger:hover,
+.table-warning:hover {
+  filter: brightness(1.1);
+}
+
