@@ -7,13 +7,18 @@ import (
 type Bill struct {
 	ID         uint   `gorm:"primaryKey;autoIncrement" json:"id"`
 	BillNumber string `gorm:"unique;not null" json:"bill_number"`
-	Username   string `json:"username"` // เปลี่ยนจาก Usern เป็น Username เพื่อความชัดเจน
+	Username   string `json:"username"` // ชื่อลูกค้า
+
+	// เชื่อมกับพนักงานที่ออกบิล
+	CreatedBy string `json:"created_by"` // ไม่ใส่ not null
+
+	User User `gorm:"foreignKey:CreatedBy" json:"user"` // ความสัมพันธ์กับ User
 
 	// รายการสินค้า/บริการ
 	Name1   string   `json:"name1"`
 	Amount1 float64  `json:"amount1"`
 	Name2   string   `json:"name2"`
-	Amount2 *float64 `json:"amount2,omitempty"` // ใช้ pointer เพื่อให้เป็น null ได้เมื่อไม่กรอก
+	Amount2 *float64 `json:"amount2,omitempty"`
 	Name3   string   `json:"name3"`
 	Amount3 *float64 `json:"amount3,omitempty"`
 	Name4   string   `json:"name4"`
@@ -24,10 +29,10 @@ type Bill struct {
 	Tax2   *float64 `json:"tax2,omitempty"`
 	Tax3   *float64 `json:"tax3,omitempty"`
 	Tax4   *float64 `json:"tax4,omitempty"`
-	Taxgo1 *float64 `json:"taxgo1,omitempty"` // ค่าฝากต่อภาษี
-	Taxgo2 *float64 `json:"taxgo2,omitempty"` // ค่าฝากต่อภาษี
-	Taxgo3 *float64 `json:"taxgo3,omitempty"` // ค่าฝากต่อภาษี
-	Taxgo4 *float64 `json:"taxgo4,omitempty"` // ค่าฝากต่อภาษี
+	Taxgo1 *float64 `json:"taxgo1,omitempty"`
+	Taxgo2 *float64 `json:"taxgo2,omitempty"`
+	Taxgo3 *float64 `json:"taxgo3,omitempty"`
+	Taxgo4 *float64 `json:"taxgo4,omitempty"`
 
 	// ข้อมูลตรวจสอบ
 	Check1 *float64 `json:"check1,omitempty"`
@@ -35,12 +40,11 @@ type Bill struct {
 	Check3 *float64 `json:"check3,omitempty"`
 	Check4 *float64 `json:"check4,omitempty"`
 
-
-// ส่วนเสริม
-Extension1 string   `json:"extension1,omitempty"`           // ประเภทงานเสริม (เช่น N1, N2)
-Extension2 *float64 `json:"extension2,omitempty"`           // จำนวนเงินงานเสริม (เปลี่ยนเป็น pointer float64)
-Extension3 string   `json:"extension3,omitempty"`           // ประเภทงานเสริมตัวที่ 2
-Extension4 *float64 `json:"extension4,omitempty"`           // จำนวนเงินงานเสริมตัวที่ 2 (เปลี่ยนเป็น pointer float64)
+	// ส่วนเสริม
+	Extension1 string   `json:"extension1,omitempty"`
+	Extension2 *float64 `json:"extension2,omitempty"`
+	Extension3 string   `json:"extension3,omitempty"`
+	Extension4 *float64 `json:"extension4,omitempty"`
 
 	// ข้อมูลอ้างอิง
 	Refer1 string `json:"refer1,omitempty"`
@@ -60,15 +64,16 @@ Extension4 *float64 `json:"extension4,omitempty"`           // จำนวน�
 	CarRegistration4 string `json:"car_registration4,omitempty"`
 
 	// วิธีการชำระเงิน
-	PaymentMethod string `json:"payment_method"` // cash, transfer, credit_card
+	PaymentMethod string `json:"payment_method"`
 
 	// วันที่และคำอธิบาย
 	Date        time.Time `gorm:"autoCreateTime" json:"date"`
-	Description string    `json:"description"`     // แก้ไขการสะกดจาก Descrition เป็น Description
-	Phone       string    `json:"phone,omitempty"` // เปลี่ยนจาก float64 เป็น string
+	Description string    `json:"description"`
+	Phone       string    `json:"phone,omitempty"`
 
-	Total 		float64 `json:"total,omitempty"`
-	// Timestamps
+	Total float64 `json:"total,omitempty"`
+
+	// เวลาสร้างและอัปเดต
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

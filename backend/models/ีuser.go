@@ -1,4 +1,3 @@
-// models/user.go
 package models
 
 type User struct {
@@ -8,6 +7,11 @@ type User struct {
 	PhoneNumber string       `json:"phone_number"`
 	Password    string       `json:"password"`
 	Checkbox    bool         `json:"checkbox"`
+
+	// ความสัมพันธ์กับ Admins และ Submissions เดิม
 	Admins      []Admin      `gorm:"many2many:user_admin" json:"admins"`
 	Submissions []Submission `gorm:"foreignKey:UserID" json:"submissions"`
+
+	// เพิ่มความสัมพันธ์กับบิลที่ผู้ใช้สร้าง
+	CreatedBills []Bill `gorm:"foreignKey:CreatedBy" json:"created_bills"`
 }

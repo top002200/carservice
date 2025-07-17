@@ -1,19 +1,43 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 	"github.com/top002200/carservice/config"
 	"github.com/top002200/carservice/models"
 	"gorm.io/gorm"
 )
 
 // GenerateBillNumber generates a unique bill number
-func GenerateBillNumber() string {
-	return "BILL-" + time.Now().Format("20060102") + "-" + uuid.New().String()[:6]
+func GenerateBillNumber(db *gorm.DB) (string, error) {
+	var lastBill models.Bill
+
+	err := db.Order("id DESC").First(&lastBill).Error
+	if err != nil && err != gorm.ErrRecordNotFound {
+		return "", err
+	}
+
+	prefix := 1
+	seq := 1
+
+	if err == nil {
+		// มีบิลล่าสุด
+		var lastPrefix, lastSeq int
+		fmt.Sscanf(lastBill.BillNumber, "%d/%04d", &lastPrefix, &lastSeq)
+
+		if lastSeq < 9999 {
+			prefix = lastPrefix
+			seq = lastSeq + 1
+		} else {
+			prefix = lastPrefix + 1
+			seq = 1
+		}
+	}
+
+	return fmt.Sprintf("%d/%04d", prefix, seq), nil
 }
 
 // calculateTotal computes the total amount for a bill
@@ -51,6 +75,21 @@ func calculateTotal(bill *models.Bill) float64 {
 // CreateBill creates a new bill
 func CreateBill(c *gin.Context) {
 	var bill models.Bill
+
+	// ✅ ดึง user_id จาก context ที่ AuthMiddleware ใส่ไว้
+	userIDVal, exists := c.Get("user_id")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"status": "error", "message": "Unauthorized: user_id missing"})
+		return
+	}
+	userID, ok := userIDVal.(string)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"status": "error", "message": "Invalid user_id format"})
+		return
+	}
+	bill.CreatedBy = userID // ✅ บันทึกว่าใครเป็นผู้สร้างบิล
+
+	// ✅ รับข้อมูลบิลจาก client
 	if err := c.ShouldBindJSON(&bill); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -60,7 +99,7 @@ func CreateBill(c *gin.Context) {
 		return
 	}
 
-	// Validate required fields
+	// ✅ ตรวจสอบ field ที่จำเป็น
 	if bill.Name1 == "" || bill.Amount1 == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": "error",
@@ -69,15 +108,25 @@ func CreateBill(c *gin.Context) {
 		return
 	}
 
-	// Calculate total
+	// ✅ สร้างหมายเลขบิล
+	billNumber, err := GenerateBillNumber(config.DB)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"status": "error",
+			"error":  "Failed to generate BillNumber: " + err.Error(),
+		})
+		return
+	}
+	bill.BillNumber = billNumber
+
+	// ✅ คำนวณยอดรวม
 	bill.Total = calculateTotal(&bill)
 
-	// Prepare bill data
-	bill.BillNumber = GenerateBillNumber()
+	// ✅ ตั้งเวลา
 	bill.CreatedAt = time.Now()
 	bill.UpdatedAt = time.Now()
 
-	// Set defaults for nullable fields
+	// ✅ ตั้งค่าดีฟอลต์ (กัน error กรณี client ไม่ส่ง field)
 	if bill.Amount2 == nil {
 		var zero float64 = 0
 		bill.Amount2 = &zero
@@ -89,7 +138,7 @@ func CreateBill(c *gin.Context) {
 		bill.Taxgo1 = new(float64)
 	}
 
-	// Save to database
+	// ✅ บันทึกลงฐานข้อมูล
 	result := config.DB.Create(&bill)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -100,6 +149,7 @@ func CreateBill(c *gin.Context) {
 		return
 	}
 
+	// ✅ ตอบกลับ
 	c.JSON(http.StatusCreated, gin.H{
 		"status": "success",
 		"data": gin.H{
@@ -107,6 +157,7 @@ func CreateBill(c *gin.Context) {
 			"created_at":  bill.CreatedAt,
 			"id":          bill.ID,
 			"total":       bill.Total,
+			"created_by":  bill.CreatedBy,
 		},
 	})
 }
@@ -264,7 +315,7 @@ func UpdateBill(c *gin.Context) {
 		existingBill.Extension3 = updateData.Extension3
 	}
 	if updateData.Extension4 != nil {
-		existingBill.Extension2 = updateData.Extension2
+		existingBill.Extension4 = updateData.Extension4
 	}
 
 	// Update references

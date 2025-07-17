@@ -3,7 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { createBill } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-import logo from "../../assets/image/PEA Logo on Violet.png";
+
 import { BillData } from "../../interface/IBill";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -264,46 +264,29 @@ const AddBill = () => {
 
   return (
     <div
-      className="vh-100 d-flex flex-column"
-      style={{ backgroundColor: "#f0f0f0" }}
-    >
-      <header
-        className="header d-flex justify-content-between align-items-center p-3 text-white"
-        style={{
-          backgroundColor: "purple",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 1000,
-        }}
-      >
-        <div className="d-flex align-items-center">
-          <img
-            src={logo}
-            alt="PEA Logo"
-            style={{ height: "50px", marginRight: "10px" }}
-          />
-          <h5 className="mb-0">ระบบออกบิลบริการ</h5>
-        </div>
-        <div>
-          <button className="btn btn-light">Logout</button>
-        </div>
-      </header>
+  style={{
+    backgroundColor: "#f8f9fa",
+    minHeight: "100vh",
+    padding: "20px",               // เพิ่มระยะห่างรอบกรอบ
+    border: "2px solid black",     // ✅ เพิ่มกรอบสีดำ
+    borderRadius: "12px",          // ✅ มุมโค้งเล็กน้อย
+    margin: "10px",                // ✅ ขอบรอบนอกกรอบ
+    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", // ✅ เพิ่มเงานิดหน่อยให้ดูนุ่มขึ้น
+  }}
+>
 
-      <main
-        className="flex-grow-1"
-        style={{ marginTop: "80px", padding: "20px" }}
-      >
+    
+
+        <main className="main-wrapper mx-auto" style={{ paddingTop: "00px" }}>
         <form
           onSubmit={handleSubmit}
-          className="p-4 bg-white rounded shadow-sm"
+          className="p-3 bg-white rounded shadow-sm"
         >
-          <h2 className="text-center mb-4 text-purple">แบบฟอร์มออกบิลบริการ</h2>
+          <h2 className="text-center mb-2 text-purple">แบบฟอร์มออกบิลบริการ</h2>
 
           {/* 1. ชื่อลูกค้าและเบอร์โทร */}
-          <div className="card mb-4">
-            <div className="card-header bg-purple text-white">
+          <div className="card mb-1">
+            <div className="card-header bg-purple text-black">
               <h5 className="mb-0">1. ข้อมูลลูกค้า</h5>
             </div>
             <div className="card-body">
@@ -334,8 +317,8 @@ const AddBill = () => {
           </div>
 
           {/* 2. รายการบริการและจำนวนเงิน */}
-          <div className="card mb-4">
-            <div className="card-header bg-purple text-white d-flex justify-content-between align-items-center">
+          <div className="card mb-1">
+            <div className="card-header bg-purple text-black d-flex justify-content-between align-items-center">
               <h5 className="mb-0">2. รายการบริการ</h5>
               <button
                 type="button"
@@ -404,8 +387,8 @@ const AddBill = () => {
           </div>
 
           {/* 3. ทะเบียนรถ, ประเภทบริการ, ค่าบริการ, ภาษี */}
-          <div className="card mb-4">
-            <div className="card-header bg-purple text-white d-flex justify-content-between align-items-center">
+          <div className="card mb-1">
+            <div className="card-header bg-purple text-black d-flex justify-content-between align-items-center">
               <h5 className="mb-0">3. ข้อมูลรถและค่าบริการ</h5>
               <button
                 type="button"
@@ -516,8 +499,8 @@ const AddBill = () => {
           </div>
 
           {/* 4. บริการเสริม */}
-          <div className="card mb-4">
-            <div className="card-header bg-purple text-white">
+          <div className="card mb-1">
+            <div className="card-header bg-purple text-black">
               <h5 className="mb-0">4. บริการเสริม</h5>
             </div>
             <div className="card-body">
@@ -589,8 +572,8 @@ const AddBill = () => {
           </div>
 
           {/* 5. ข้อมูลอ้างอิง */}
-          <div className="card mb-4">
-            <div className="card-header bg-purple text-white d-flex justify-content-between align-items-center">
+          <div className="card mb-1">
+            <div className="card-header bg-purple text-black d-flex justify-content-between align-items-center">
               <h5 className="mb-0">5. ข้อมูลอ้างอิง</h5>
               <button
                 type="button"
@@ -645,8 +628,8 @@ const AddBill = () => {
           </div>
 
           {/* 6. วิธีการชำระเงิน */}
-          <div className="card mb-4">
-            <div className="card-header bg-purple text-white">
+          <div className="card mb-1">
+            <div className="card-header bg-purple text-black">
               <h5 className="mb-0">6. วิธีการชำระเงิน</h5>
             </div>
             <div className="card-body">
@@ -704,8 +687,8 @@ const AddBill = () => {
           </div>
 
           {/* 7. รายละเอียดเพิ่มเติม */}
-          <div className="card mb-4">
-            <div className="card-header bg-purple text-white">
+          <div className="card mb-1">
+            <div className="card-header bg-purple text-black">
               <h5 className="mb-0">7. รายละเอียดเพิ่มเติม</h5>
             </div>
             <div className="card-body">
@@ -723,8 +706,8 @@ const AddBill = () => {
           </div>
 
           {/* 8. วันที่ */}
-          <div className="card mb-4">
-            <div className="card-header bg-purple text-white">
+          <div className="card mb-1">
+            <div className="card-header bg-purple text-black">
               <h5 className="mb-0">8. วันที่</h5>
             </div>
             <div className="card-body">
@@ -764,10 +747,7 @@ const AddBill = () => {
           </div>
 
           {/* ยอดรวมทั้งหมด */}
-          <div className="card mb-4">
-            <div className="card-header bg-purple text-white">
-              <h5 className="mb-0">ยอดรวมทั้งหมด</h5>
-            </div>
+          <div className="card mb-1">
             <div className="card-body">
               <div className="row">
                 <div className="col-md-6">

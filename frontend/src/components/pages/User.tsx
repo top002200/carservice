@@ -8,6 +8,7 @@ import {
   faFilePdf,
   faPlus,
   faTrashCan,
+  faMinus,
 } from "@fortawesome/free-solid-svg-icons";
 import { getAllBills } from "../../services/api";
 import Swal from "sweetalert2";
@@ -15,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 import moment from "moment";
 import EditPDF from "./EditPDF";
 import html2pdf from "html2pdf.js";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 interface Bill {
   id?: number;
@@ -34,10 +37,16 @@ const User: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState("");
   const [selectedYear, setSelectedYear] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 10;
+  const rowsPerPage = 9;
   const navigate = useNavigate();
   const [pdfVisible, setPdfVisible] = useState(false);
   const pdfRef = useRef<HTMLDivElement>(null);
+  const [todayOnly, setTodayOnly] = useState(false);
+  const [dateRange, setDateRange] = useState<{ start: string; end: string }>({
+    start: "",
+    end: "",
+  });
+
   const fetchBills = async () => {
     try {
       const response = await getAllBills();
@@ -70,20 +79,43 @@ const User: React.FC = () => {
   const filteredData = bills
     .filter((bill) => {
       if (!bill.created_at) return false;
+
       const date = new Date(bill.created_at);
+      const itemDateStr = date.toISOString().slice(0, 10);
+
+      // ถ้าเลือกวันนี้
+      if (todayOnly) {
+        const todayStr = new Date().toISOString().slice(0, 10);
+        return itemDateStr === todayStr;
+      }
+
+      // ถ้าเลือกช่วงเวลา
+      if (dateRange.start && dateRange.end) {
+        return itemDateStr >= dateRange.start && itemDateStr <= dateRange.end;
+      }
+
+      // ถ้าไม่เลือกวันนี้/ช่วง → ใช้เดือน+ปี
       const itemMonth = date.getMonth() + 1;
       const itemYear = date.getFullYear();
       const isMonthMatched =
         selectedMonth === "" || itemMonth === parseInt(selectedMonth);
       const isYearMatched =
         selectedYear === "" || itemYear === parseInt(selectedYear);
+
       return isMonthMatched && isYearMatched;
     })
-    .filter(
-      (bill) =>
-        bill.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        bill.phone.includes(searchTerm)
-    )
+    .filter((bill) => {
+      const search = searchTerm.toLowerCase();
+      return (
+        bill.bill_number?.toLowerCase().includes(search) ||
+        bill.username?.toLowerCase().includes(search) ||
+        bill.car_registration1?.toLowerCase().includes(search) ||
+        bill.car_registration2?.toLowerCase().includes(search) ||
+        bill.car_registration3?.toLowerCase().includes(search) ||
+        bill.car_registration4?.toLowerCase().includes(search)
+      );
+    })
+
     .sort((a, b) => {
       const dateA = new Date(a.created_at || "");
       const dateB = new Date(b.created_at || "");
@@ -186,504 +218,592 @@ const User: React.FC = () => {
   };
 
   return (
-    <div className="equipment-info-content">
-      {pdfVisible && (
-        <div
-          ref={pdfRef}
-          style={{ opacity: 0, position: "absolute", pointerEvents: "none" }}
-        >
-          <EditPDF
-            data={filteredData}
-            selectedMonthName={selectedMonthName}
-            selectedYearText={selectedYearText}
-            formatDate={formatDate}
-          />
-        </div>
-      )}
-
-      <h4
-        className="text-center"
-        style={{ color: "#74045f", textDecoration: "underline" }}
-      >
-        <b>ข้อมูลบิล</b>
-      </h4>
-
+    <div
+      style={{
+        backgroundColor: "#f8f9fa",
+        minHeight: "100vh",
+        padding: "0px",
+        overflowX: "hidden", // ✅ ป้องกันล้นขวา
+      }}
+    >
       <div
+        className="main-wrapper mx-auto"
         style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 15,
-          padding: "0 20px",
+          maxWidth: "100%",
+          overflowX: "auto",
+          paddingBottom: "30px",
+          border: "2px solid black", // ✅ เพิ่มกรอบสีดำ
+          borderRadius: "12px", // ✅ มุมโค้งนิดหน่อย
+          padding: "20px", // ✅ เพิ่ม padding ภายในกรอบ
+          backgroundColor: "white", // ✅ ตัดกับสีพื้นหลังนอกสุด
         }}
       >
-        {/* Dropdown สำหรับเลือกเดือน และปี */}
-        <div style={{ display: "flex", gap: "10px" }}>
-          {/* Dropdown สำหรับเลือกเดือน */}
-          <Form.Select
-            aria-label="เลือกเดือน"
-            onChange={handleMonthChange}
-            value={selectedMonth}
-            style={{ width: "200px" }}
-          >
-            <option value="">เลือกเดือน</option>
-            <option value="1">มกราคม</option>
-            <option value="2">กุมภาพันธ์</option>
-            <option value="3">มีนาคม</option>
-            <option value="4">เมษายน</option>
-            <option value="5">พฤษภาคม</option>
-            <option value="6">มิถุนายน</option>
-            <option value="7">กรกฎาคม</option>
-            <option value="8">สิงหาคม</option>
-            <option value="9">กันยายน</option>
-            <option value="10">ตุลาคม</option>
-            <option value="11">พฤศจิกายน</option>
-            <option value="12">ธันวาคม</option>
-          </Form.Select>
-
-          {/* Dropdown สำหรับเลือกปี */}
-          <Form.Select
-            aria-label="เลือกปี"
-            onChange={handleYearChange}
-            value={selectedYear}
-            style={{ width: "200px" }}
-          >
-            <option value="">เลือกปี</option>
-            {Array.from(
-              new Set(
-                bills
-                  .filter((item) => {
-                    if (selectedMonth) {
-                      const itemMonth =
-                        new Date(item.created_at).getMonth() + 1;
-                      return itemMonth === parseInt(selectedMonth);
-                    }
-                    return true;
-                  })
-                  .filter((item) => item.created_at)
-                  .map((item) => new Date(item.created_at).getFullYear())
-              )
-            )
-              .sort()
-              .map((year) => (
-                <option key={year} value={year}>
-                  {year}
-                </option>
-              ))}
-          </Form.Select>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          {/* Search Input */}
-          <Form.Control
-            type="text"
-            placeholder="ค้นหาด้วยชื่อลูกค้าหรือเบอร์โทร"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            style={{ width: "300px" }}
-          />
-
-          {/* Button Group สำหรับปุ่มดาวน์โหลด PDF และ Excel */}
+        {pdfVisible && (
           <div
-            className="btn-group"
-            role="group"
-            aria-label="Export Buttons"
+            ref={pdfRef}
+            style={{ opacity: 0, position: "absolute", pointerEvents: "none" }}
+          >
+            <EditPDF
+              data={filteredData}
+              selectedMonthName={selectedMonthName}
+              selectedYearText={selectedYearText}
+              formatDate={formatDate}
+            />
+          </div>
+        )}
+
+        <h4
+          className="text-center"
+          style={{ color: "#74045f", textDecoration: "underline" }}
+        >
+          <b>รายงานสถานตรวจสภาพรถท็อป - นิว</b>
+        </h4>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 15,
+            padding: "0 20px",
+          }}
+        >
+          <div
+            className="d-flex align-items-center gap-3 flex-wrap shadow-sm"
             style={{
-              borderRadius: "8px",
-              overflow: "hidden",
-              boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
+              backgroundColor: "#f0f0f0", // พื้นหลังเทาอ่อน
+              padding: "8px 5px",
+              borderRadius: "16px",
+              border: "1px solid #ddd",
+              marginBottom: "20px",
             }}
           >
-            {/* ปุ่มดาวน์โหลด PDF */}
-            <button
-              type="button"
-              className="btn btn-danger"
-              onClick={exportToPDF}
-              title="ดาวน์โหลดรายงาน PDF"
-              style={{ fontSize: "20px" }}
+            {/* Checkbox วันนี้ */}
+            <div
+              className="d-flex align-items-center px-3 py-2"
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: "12px",
+                border: "1px solid #ccc",
+                boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+              }}
             >
-              <FontAwesomeIcon icon={faFilePdf} />
-            </button>
+              <Form.Check
+                type="checkbox"
+                id="todayCheck"
+                label={
+                  <span style={{ fontWeight: "bold", color: "#6a1b9a" }}>
+                    📆 วันนี้
+                  </span>
+                }
+                checked={todayOnly}
+                onChange={(e) => setTodayOnly(e.target.checked)}
+              />
+            </div>
+
+            {/* DatePicker เริ่มต้น */}
+            <div
+              className="d-flex flex-column"
+              style={{
+                backgroundColor: "#fff",
+                padding: "5px 12px",
+                borderRadius: "6px",
+                border: "1px solid #ccc",
+                boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+              <DatePicker
+                selected={dateRange.start ? new Date(dateRange.start) : null}
+                onChange={(date) => {
+                  const d = date ? date.toISOString().slice(0, 10) : "";
+                  setDateRange({ ...dateRange, start: d });
+                }}
+                dateFormat="yyyy-MM-dd"
+                placeholderText="📅เลือกวันที่เริ่มต้น"
+                className="form-control"
+              />
+            </div>
+
+            {/* DatePicker สิ้นสุด */}
+            <div
+              className="d-flex flex-column"
+              style={{
+                backgroundColor: "#fff",
+                padding: "8px 12px",
+                borderRadius: "12px",
+                border: "1px solid #ccc",
+                boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+              }}
+            >
+              <DatePicker
+                selected={dateRange.end ? new Date(dateRange.end) : null}
+                onChange={(date) => {
+                  const d = date ? date.toISOString().slice(0, 10) : "";
+                  setDateRange({ ...dateRange, end: d });
+                }}
+                dateFormat="yyyy-MM-dd"
+                placeholderText="📅เลือกวันที่สิ้นสุด"
+                className="form-control"
+              />
+            </div>
           </div>
 
-          {/* ปุ่มเพิ่มข้อมูล */}
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={() => navigate("/user/addbill")}
-            title="เพิ่มบิลใหม่"
+          <div
             style={{
-              color: "white",
-              marginLeft: "10px",
+              display: "flex",
+              alignItems: "center",
+              gap: "8px", // ลดช่องว่างให้ชิดกัน
               padding: "10px 15px",
-              fontSize: "14px",
-              borderRadius: "8px",
-              boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
+              background: "#f8f9fa",
+              borderRadius: "10px",
+              boxShadow: "0 2px 6px rgba(0, 0, 0, 0.08)",
+              flexWrap: "wrap",
+              justifyContent: "start",
             }}
           >
-            <FontAwesomeIcon icon={faPlus} /> เพิ่มบิล
-          </button>
+            {/* Search Input */}
+            <Form.Control
+              type="text"
+              placeholder="🔍 ค้นหา"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width: "180px",
+                height: "38px",
+                borderRadius: "6px",
+                fontSize: "14px",
+                paddingLeft: "10px",
+              }}
+            />
 
-          {/* ปุ่ม Logout */}
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleLogout}
-            title="ออกจากระบบ"
-            style={{
-              marginLeft: "10px",
-              padding: "10px 15px",
-              fontSize: "14px",
-              borderRadius: "8px",
-              boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
-            }}
-          >
-            ออกจากระบบ
-          </button>
+            {/* Export PDF Button */}
+            <button
+              type="button"
+              className="btn"
+              onClick={exportToPDF}
+              title="ดาวน์โหลด PDF"
+              style={{
+                backgroundColor: "#dc3545",
+                color: "#fff",
+                height: "38px",
+                padding: "0 12px",
+                fontSize: "14px",
+                borderRadius: "6px",
+                boxShadow: "0px 2px 5px rgba(220, 53, 69, 0.3)",
+              }}
+            >
+              <FontAwesomeIcon icon={faFilePdf} /> PDF
+            </button>
+
+            {/* Add Bill Button */}
+            <button
+              type="button"
+              className="btn"
+              onClick={() => navigate("/user/addbill")}
+              title="เพิ่มบิลใหม่"
+              style={{
+                background: "linear-gradient(135deg, #4e54c8, #8f94fb)",
+                color: "white",
+                height: "38px",
+                padding: "0 14px",
+                fontSize: "14px",
+                fontWeight: 500,
+                borderRadius: "6px",
+                boxShadow: "0 2px 5px rgba(78, 84, 200, 0.3)",
+              }}
+            >
+              <FontAwesomeIcon icon={faPlus} /> เพิ่มบิล
+            </button>
+
+            {/* Logout Button */}
+            <button
+              type="button"
+              className="btn"
+              onClick={handleLogout}
+              title="ออกจากระบบ"
+              style={{
+                backgroundColor: "#6c757d",
+                color: "white",
+                height: "38px",
+                padding: "0 14px",
+                fontSize: "14px",
+                fontWeight: 500,
+                borderRadius: "6px",
+                boxShadow: "0px 2px 5px rgba(108, 117, 125, 0.2)",
+              }}
+            >
+              ออกจากระบบ
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* Table */}
-      <Table bordered hover responsive>
-        <thead>
-          <tr className="align-middle text-center">
-            <th>เลขที่บิล</th>
-            <th>ชื่อลูกค้า</th>
-            <th>เลขทะเบียน</th>
-            <th>เบอร์โทร</th>
-            <th>วันที่สร้าง</th>
-            <th style={{ width: 100 }}>รายละเอียด</th>
-            <th style={{ width: 150 }}>การดำเนินการ</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginatedData.map((item, index) => (
-            <tr key={item.id} className="align-middle text-center">
-              <td>{item.id}</td>
-              <td>{item.username}</td>
-              <td>
-                {[1, 2, 3, 4]
-                  .map((i) => item[`car_registration${i}`])
-                  .filter(Boolean)
-                  .map((reg, idx) => (
-                    <div key={idx}>{reg}</div>
-                  ))}
-              </td>
-
-              <td>{item.phone}</td>
-              <td>{formatDate(item.created_at)}</td>
-              <td>
-                <Button
-                  variant="outline-info"
-                  onClick={() => openBillDetail(item)}
-                >
-                  <FontAwesomeIcon icon={faCircleInfo} />
-                </Button>
-              </td>
-              <td>
-                <Button
-                  variant="outline-primary"
-                  className="me-2"
-                  style={{ width: "40px" }}
-                  onClick={() => navigate(`/user/editbill/${item.id}`)}
-                >
-                  <FontAwesomeIcon icon={faEdit} />
-                </Button>
-                <Button
-                  variant="outline-danger"
-                  onClick={() => {
-                    Swal.fire({
-                      title: "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?",
-                      text: "ข้อมูลจะถูกลบไปและไม่สามารถกู้คืนได้",
-                      icon: "warning",
-                      showCancelButton: true,
-                      confirmButtonText: "ลบ",
-                      cancelButtonText: "ยกเลิก",
-                    }).then((result) => {
-                      if (result.isConfirmed) {
-                        // Here you would call your delete API
-                        Swal.fire(
-                          "ลบสำเร็จ!",
-                          "ข้อมูลบิลได้ถูกลบเรียบร้อยแล้ว.",
-                          "success"
-                        );
-                      }
-                    });
-                  }}
-                >
-                  <FontAwesomeIcon icon={faTrashCan} />
-                </Button>
-              </td>
+        {/* Table */}
+        <Table bordered hover responsive>
+          <thead>
+            <tr className="align-middle text-center">
+              <th>เลขที่บิล</th>
+              <th>ชื่อลูกค้า</th>
+              <th>เลขทะเบียน</th>
+              <th>เบอร์โทร</th>
+              <th>วันที่สร้าง</th>
+              <th style={{ width: 100 }}>รายละเอียด</th>
+              <th style={{ width: 150 }}>เงินเพิ่มเงินคืน</th>
             </tr>
+          </thead>
+          <tbody>
+            {paginatedData.map((item) => (
+              <tr key={item.id} className="align-middle text-center">
+                <td>{item.bill_number}</td>
+                <td>{item.username}</td>
+                <td>
+                  {[1, 2, 3, 4]
+                    .map((i) => item[`car_registration${i}`])
+                    .filter(Boolean)
+                    .map((reg, idx) => (
+                      <div key={idx}>{reg}</div>
+                    ))}
+                </td>
+
+                <td>{item.phone}</td>
+                <td>{formatDate(item.created_at)}</td>
+                <td>
+                  <Button
+                    variant="outline-info"
+                    onClick={() => openBillDetail(item)}
+                  >
+                    <FontAwesomeIcon icon={faCircleInfo} />
+                  </Button>
+                </td>
+                <td>
+                  <Button
+                    variant="outline-primary"
+                    className="me-2"
+                    style={{ width: "40px" }}
+                    onClick={() => navigate(`/user/editbill/${item.id}`)}
+                  >
+                    <FontAwesomeIcon icon={faPlus} />
+                  </Button>
+                  <Button
+                    variant="outline-danger"
+                    onClick={() => {
+                      Swal.fire({
+                        title: "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?",
+                        text: "ข้อมูลจะถูกลบไปและไม่สามารถกู้คืนได้",
+                        icon: "warning",
+                        showCancelButton: true,
+                        confirmButtonText: "ลบ",
+                        cancelButtonText: "ยกเลิก",
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          // Here you would call your delete API
+                          Swal.fire(
+                            "ลบสำเร็จ!",
+                            "ข้อมูลบิลได้ถูกลบเรียบร้อยแล้ว.",
+                            "success"
+                          );
+                        }
+                      });
+                    }}
+                  >
+                    <FontAwesomeIcon icon={faMinus} />
+                  </Button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </Table>
+
+        {/* Pagination Controls */}
+        <Pagination className="justify-content-center">
+          <Pagination.Prev
+            disabled={currentPage === 1}
+            onClick={() => handlePageChange(currentPage - 1)}
+          />
+          {[...Array(totalPages).keys()].map((page) => (
+            <Pagination.Item
+              key={page + 1}
+              active={page + 1 === currentPage}
+              onClick={() => handlePageChange(page + 1)}
+            >
+              {page + 1}
+            </Pagination.Item>
           ))}
-        </tbody>
-      </Table>
+          <Pagination.Next
+            disabled={currentPage === totalPages}
+            onClick={() => handlePageChange(currentPage + 1)}
+          />
+        </Pagination>
 
-      {/* Pagination Controls */}
-      <Pagination className="justify-content-center">
-        <Pagination.Prev
-          disabled={currentPage === 1}
-          onClick={() => handlePageChange(currentPage - 1)}
-        />
-        {[...Array(totalPages).keys()].map((page) => (
-          <Pagination.Item
-            key={page + 1}
-            active={page + 1 === currentPage}
-            onClick={() => handlePageChange(page + 1)}
+        {/* Detail Modal */}
+        <Modal
+          show={showModal}
+          onHide={closeModal}
+          size="xl"
+          centered
+          dialogClassName="border-0 shadow rounded-4"
+          contentClassName="rounded-4"
+        >
+          <Modal.Header closeButton className="bg-light rounded-top-4">
+            <Modal.Title className="text-center w-100 fw-bold text-primary">
+              รายละเอียดบิลเลขที่ {selectedBill?.id}
+            </Modal.Title>
+          </Modal.Header>
+
+          <Modal.Body
+            style={{
+              maxHeight: "70vh",
+              overflowY: "auto",
+              padding: "30px",
+              backgroundColor: "#fdfdfd",
+            }}
           >
-            {page + 1}
-          </Pagination.Item>
-        ))}
-        <Pagination.Next
-          disabled={currentPage === totalPages}
-          onClick={() => handlePageChange(currentPage + 1)}
-        />
-      </Pagination>
-
-      {/* Detail Modal */}
-      <Modal show={showModal} onHide={closeModal} size="lg" centered>
-        <Modal.Header closeButton>
-          <Modal.Title className="text-center w-100">
-            <b>รายละเอียดบิลเลขที่ {selectedBill?.id}</b>
-          </Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          {selectedBill ? (
-            <div className="container">
-              {/* ข้อมูลลูกค้า */}
-              <div className="mb-4">
-                <h5 className="border-bottom pb-2 text-secondary fw-bold">
-                  ข้อมูลลูกค้า
-                </h5>
-                <div className="row">
-                  <div className="col-md-4">
-                    <p>
-                      <b>ชื่อลูกค้า :</b> {selectedBill.username}
-                    </p>
-                  </div>
-                  <div className="col-md-4">
-                    <p>
-                      <b>เบอร์โทร :</b> {selectedBill.phone}
-                    </p>
-                  </div>
-                  <div className="col-md-4">
-                    <p>
-                      <b>วันที่สร้าง :</b> {formatDate(selectedBill.created_at)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* ข้อมูลการชำระเงิน */}
-              <div className="mb-4">
-                <h5 className="border-bottom pb-2 text-secondary fw-bold">
-                  ข้อมูลการชำระเงิน
-                </h5>
-                <div className="row">
-                  <div className="col-md-6">
-                    <p>
-                      <b>วิธีการชำระเงิน :</b>{" "}
-                      {selectedBill.payment_method === "cash"
-                        ? "เงินสด"
-                        : selectedBill.payment_method === "transfer"
-                        ? "โอนเงิน"
-                        : "บัตรเครดิต"}
-                    </p>
-                  </div>
-                  <div className="col-md-6">
-                    <p>
-                      <b>หมายเหตุ :</b> {selectedBill.description || "-"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* รายการบริการ */}
-              <div className="mb-4">
-                <h5 className="border-bottom pb-2 text-secondary fw-bold">
-                  รายการบริการ
-                </h5>
-                <Table bordered hover>
-                  <thead>
-                    <tr>
-                      <th>ลำดับ</th>
-                      <th>รายการ</th>
-                      <th>จำนวนเงิน (บาท)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[1, 2, 3, 4].map(
-                      (i) =>
-                        selectedBill[`name${i}`] && (
-                          <tr key={i}>
-                            <td>{i}</td>
-                            <td>{selectedBill[`name${i}`]}</td>
-                            <td style={{ textAlign: "right" }}>
-                              {selectedBill[`amount${i}`]?.toLocaleString()}
-                            </td>
-                          </tr>
-                        )
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-
-              {/* ข้อมูลรถ */}
-              <div className="mb-4">
-                <h5 className="border-bottom pb-2 text-secondary fw-bold">
-                  ข้อมูลรถ
-                </h5>
-                <Table bordered hover>
-                  <thead>
-                    <tr>
-                      <th>ลำดับ</th>
-                      <th>ทะเบียนรถ</th>
-                      <th>ประเภทบริการ</th>
-                      <th>ค่าบริการ</th>
-                      <th>ภาษี/ค่าปรับ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[1, 2, 3, 4].map(
-                      (i) =>
-                        selectedBill[`car_registration${i}`] && (
-                          <tr key={i}>
-                            <td>{i}</td>
-                            <td>{selectedBill[`car_registration${i}`]}</td>
-                            <td>
-                              {selectedBill[`check${i}`] === 60
-                                ? "มอไซค์"
-                                : selectedBill[`check${i}`] === 200
-                                ? "รถยนต์"
-                                : "-"}
-                            </td>
-                            <td style={{ textAlign: "right" }}>
-                              {selectedBill[`check${i}`]?.toLocaleString()}
-                            </td>
-                            <td style={{ textAlign: "right" }}>
-                              {selectedBill[`tax${i}`]?.toLocaleString()}
-                            </td>
-                          </tr>
-                        )
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-
-              {/* ภาษีและฝากต่อ */}
-              <div className="mb-4">
-                <h5 className="border-bottom pb-2 text-secondary fw-bold">
-                  ภาษีและฝากต่อ
-                </h5>
-                <Table bordered hover>
-                  <thead>
-                    <tr>
-                      <th>ลำดับ</th>
-                      <th>ทะเบียนรถ</th>
-                      <th>ค่าภาษีทะเบียน</th>
-                      <th>ค่าฝากต่อ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[1, 2, 3, 4].map(
-                      (i) =>
-                        (selectedBill[`tax${i}`] ||
-                          selectedBill[`taxgo${i}`]) && (
-                          <tr key={i}>
-                            <td>{i}</td>
-                            <td>
-                              {selectedBill[`car_registration${i}`] || "-"}
-                            </td>
-                            <td style={{ textAlign: "right" }}>
-                              {selectedBill[`tax${i}`]?.toLocaleString() || "-"}
-                            </td>
-                            <td style={{ textAlign: "right" }}>
-                              {selectedBill[`taxgo${i}`]?.toLocaleString() ||
-                                "-"}
-                            </td>
-                          </tr>
-                        )
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-
-              {/* บริการเสริม */}
-              <div className="mb-4">
-                <h5 className="border-bottom pb-2 text-secondary fw-bold">
-                  บริการเสริม
-                </h5>
-                <Table bordered hover>
-                  <thead>
-                    <tr>
-                      <th>รายการ</th>
-                      <th>ค่าบริการ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {[1, 3].map((i) =>
-                      selectedBill[`extension${i}`] &&
-                      selectedBill[`extension${i + 1}`] ? (
-                        <tr key={i}>
-                          <td>{selectedBill[`extension${i}`]}</td>
-                          <td>{selectedBill[`extension${i + 1}`]}</td>
-                        </tr>
-                      ) : null
-                    )}
-                  </tbody>
-                </Table>
-              </div>
-
-              {/* ยอดรวมทั้งหมด */}
-              <div className="mb-4 p-3 bg-light rounded">
-                <div className="d-flex justify-content-between">
-                  <h5 className="fw-bold">ยอดรวมทั้งหมด:</h5>
-                  <h5 className="fw-bold text-primary">
-                    {selectedBill.total?.toLocaleString()} บาท
+            {selectedBill ? (
+              <div className="container">
+                {/* ข้อมูลลูกค้า */}
+                <div className="mb-4">
+                  <h5 className="border-bottom pb-2 text-dark fw-bold">
+                    ข้อมูลลูกค้า
                   </h5>
+                  <div className="row">
+                    <div className="col-md-4">
+                      <p>
+                        <b>ชื่อลูกค้า :</b> {selectedBill.username}
+                      </p>
+                    </div>
+                    <div className="col-md-4">
+                      <p>
+                        <b>เบอร์โทร :</b> {selectedBill.phone}
+                      </p>
+                    </div>
+                    <div className="col-md-4">
+                      <p>
+                        <b>วันที่สร้าง :</b>{" "}
+                        {formatDate(selectedBill.created_at)}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
 
-              {/* วันที่นัดรับ */}
-              {selectedBill.date && (
-                <div className="mb-4 p-3 border rounded">
+                {/* ข้อมูลการชำระเงิน */}
+                <div className="mb-4">
+                  <h5 className="border-bottom pb-2 text-dark fw-bold">
+                    ข้อมูลการชำระเงิน
+                  </h5>
+                  <div className="row">
+                    <div className="col-md-6">
+                      <p>
+                        <b>วิธีการชำระเงิน :</b>{" "}
+                        {selectedBill.payment_method === "cash"
+                          ? "เงินสด"
+                          : selectedBill.payment_method === "transfer"
+                          ? "โอนเงิน"
+                          : "บัตรเครดิต"}
+                      </p>
+                    </div>
+                    <div className="col-md-6">
+                      <p>
+                        <b>หมายเหตุ :</b> {selectedBill.description || "-"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* รายการบริการ */}
+                <div className="mb-4">
+                  <h5 className="border-bottom pb-2 text-dark fw-bold">
+                    รายการบริการ
+                  </h5>
+                  <Table bordered hover responsive size="sm">
+                    <thead className="table-light text-center">
+                      <tr>
+                        <th>ลำดับ</th>
+                        <th>รายการ</th>
+                        <th>จำนวนเงิน (บาท)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[1, 2, 3, 4].map(
+                        (i) =>
+                          selectedBill[`name${i}`] && (
+                            <tr key={i}>
+                              <td className="text-center">{i}</td>
+                              <td>{selectedBill[`name${i}`]}</td>
+                              <td className="text-end">
+                                {selectedBill[`amount${i}`]?.toLocaleString()}
+                              </td>
+                            </tr>
+                          )
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
+
+                {/* ข้อมูลรถ */}
+                <div className="mb-4">
+                  <h5 className="border-bottom pb-2 text-dark fw-bold">
+                    ข้อมูลรถ
+                  </h5>
+                  <Table bordered hover responsive size="sm">
+                    <thead className="table-light text-center">
+                      <tr>
+                        <th>ลำดับ</th>
+                        <th>ทะเบียนรถ</th>
+                        <th>ประเภทบริการ</th>
+                        <th>ค่าบริการ</th>
+                        <th>ภาษี/ค่าปรับ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[1, 2, 3, 4].map(
+                        (i) =>
+                          selectedBill[`car_registration${i}`] && (
+                            <tr key={i}>
+                              <td className="text-center">{i}</td>
+                              <td>{selectedBill[`car_registration${i}`]}</td>
+                              <td>
+                                {selectedBill[`check${i}`] === 60
+                                  ? "มอไซค์"
+                                  : selectedBill[`check${i}`] === 200
+                                  ? "รถยนต์"
+                                  : "-"}
+                              </td>
+                              <td className="text-end">
+                                {selectedBill[`check${i}`]?.toLocaleString()}
+                              </td>
+                              <td className="text-end">
+                                {selectedBill[`tax${i}`]?.toLocaleString()}
+                              </td>
+                            </tr>
+                          )
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
+
+                {/* ภาษีและฝากต่อ */}
+                <div className="mb-4">
+                  <h5 className="border-bottom pb-2 text-dark fw-bold">
+                    ภาษีและฝากต่อ
+                  </h5>
+                  <Table bordered hover responsive size="sm">
+                    <thead className="table-light text-center">
+                      <tr>
+                        <th>ลำดับ</th>
+                        <th>ทะเบียนรถ</th>
+                        <th>ค่าภาษีทะเบียน</th>
+                        <th>ค่าฝากต่อ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[1, 2, 3, 4].map(
+                        (i) =>
+                          (selectedBill[`tax${i}`] ||
+                            selectedBill[`taxgo${i}`]) && (
+                            <tr key={i}>
+                              <td className="text-center">{i}</td>
+                              <td>
+                                {selectedBill[`car_registration${i}`] || "-"}
+                              </td>
+                              <td className="text-end">
+                                {selectedBill[`tax${i}`]?.toLocaleString() ||
+                                  "-"}
+                              </td>
+                              <td className="text-end">
+                                {selectedBill[`taxgo${i}`]?.toLocaleString() ||
+                                  "-"}
+                              </td>
+                            </tr>
+                          )
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
+
+                {/* บริการเสริม */}
+                <div className="mb-4">
+                  <h5 className="border-bottom pb-2 text-dark fw-bold">
+                    บริการเสริม
+                  </h5>
+                  <Table bordered hover responsive size="sm">
+                    <thead className="table-light text-center">
+                      <tr>
+                        <th>รายการ</th>
+                        <th>ค่าบริการ</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[1, 3].map(
+                        (i) =>
+                          selectedBill[`extension${i}`] &&
+                          selectedBill[`extension${i + 1}`] && (
+                            <tr key={i}>
+                              <td>{selectedBill[`extension${i}`]}</td>
+                              <td className="text-end">
+                                {selectedBill[
+                                  `extension${i + 1}`
+                                ]?.toLocaleString()}
+                              </td>
+                            </tr>
+                          )
+                      )}
+                    </tbody>
+                  </Table>
+                </div>
+
+                {/* ยอดรวม */}
+                <div className="mb-4 p-3 bg-white border rounded shadow-sm">
                   <div className="d-flex justify-content-between align-items-center">
-                    <h5 className="fw-bold text-danger">วันที่นัดรับ:</h5>
-                    <h5 className="fw-bold text-danger">
-                      {formatDate(selectedBill.date)}
+                    <h5 className="fw-bold mb-0">ยอดรวมทั้งหมด:</h5>
+                    <h5 className="fw-bold text-success mb-0">
+                      {selectedBill.total?.toLocaleString()} บาท
                     </h5>
                   </div>
                 </div>
-              )}
-            </div>
-          ) : (
-            <p className="text-danger text-center">ไม่พบข้อมูล</p>
-          )}
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={closeModal}>
-            ปิด
-          </Button>
-          <Button
-            variant="warning"
-            style={{
-              minWidth: "140px",
-              fontWeight: "bold",
-              textAlign: "center",
-            }}
-            onClick={() => {
-              setTimeout(() => {
-                navigate("/user/bill-print", {
-                  state: { billData: selectedBill },
-                });
-                setShowModal(false);
-              }, 1000); // 1 วินาที
-            }}
-          >
-            พิมพ์บิล
-          </Button>
-        </Modal.Footer>
-      </Modal>
+
+                {/* วันที่นัดรับ */}
+                {selectedBill.date && (
+                  <div className="mb-4 p-3 border rounded bg-light">
+                    <div className="d-flex justify-content-between align-items-center">
+                      <h5 className="fw-bold text-danger mb-0">
+                        วันที่นัดรับ:
+                      </h5>
+                      <h5 className="fw-bold text-danger mb-0">
+                        {formatDate(selectedBill.date)}
+                      </h5>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-danger text-center">ไม่พบข้อมูล</p>
+            )}
+          </Modal.Body>
+
+          <Modal.Footer className="bg-light rounded-bottom-4">
+            <Button variant="secondary" onClick={closeModal}>
+              ปิด
+            </Button>
+            <Button
+              variant="warning"
+              style={{
+                minWidth: "140px",
+                fontWeight: "bold",
+                textAlign: "center",
+              }}
+              onClick={() => {
+                setTimeout(() => {
+                  navigate("/user/bill-print", {
+                    state: { billData: selectedBill },
+                  });
+                  setShowModal(false);
+                }, 1000);
+              }}
+            >
+              พิมพ์บิล
+            </Button>
+          </Modal.Footer>
+        </Modal>
+      </div>
     </div>
   );
 };

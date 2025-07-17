@@ -35,9 +35,9 @@ func InitDatabase() {
 		&models.User{},
 		&models.Heading{},
 		&models.Submission{},
-		&models.UserAdmin{}, // Make sure this join table is migrated as well
+		&models.UserAdmin{},
 		&models.Bill{},
-		
+		&models.ExpenseBill{}, // ✅ เพิ่มบิลจ่ายที่นี่
 	)
 	if err != nil {
 		log.Fatal("Failed to migrate database schema:", err)

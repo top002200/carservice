@@ -3,6 +3,8 @@ import { UserData } from "../interface/IUser"; // Assuming you have a User inter
 import { HeadingData } from "../interface/IHeading";
 import { SubmissionData } from "../interface/ISubmission";
 import { BillData } from "../interface/IBill";
+import { ExpenseBillData } from "../interface/IExpenseBill";
+
 
 // const apiURL = "http://localhost:8080";
 const apiURL = "http://localhost:8080";
@@ -677,6 +679,90 @@ export async function getBillsByDateRange(startDate: string, endDate: string) {
   }
 }
 
+// Create Expense Bill
+export async function createExpenseBill(data: ExpenseBillData) {
+  try {
+    const response = await fetch(`${apiURL}/expensebill`, {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+
+    const res = await response.json();
+    if (response.ok) {
+      return { status: true, data: res.data, message: res.message || "สร้างบิลจ่ายสำเร็จ" };
+    } else {
+      return { status: false, message: res.error || "ไม่สามารถสร้างบิลจ่ายได้" };
+    }
+  } catch (error: any) {
+    console.error("Error creating expense bill:", error);
+    return { status: false, message: error.message || "เกิดข้อผิดพลาด" };
+  }
+}
+
+// Get All Expense Bills
+export async function getAllExpenseBills() {
+  try {
+    const response = await fetch(`${apiURL}/expensebills`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    const res = await response.json();
+    if (response.ok) {
+      return { status: true, data: res.data };
+    } else {
+      return { status: false, message: res.error || "ไม่สามารถโหลดข้อมูลบิลจ่ายได้" };
+    }
+  } catch (error: any) {
+    console.error("Error fetching expense bills:", error);
+    return { status: false, message: error.message || "เกิดข้อผิดพลาด" };
+  }
+}
+
+// Get Expense Bill by ID
+export async function getExpenseBillById(id: string) {
+  try {
+    const response = await fetch(`${apiURL}/expensebill/${id}`, {
+      method: "GET",
+      headers: getAuthHeaders(),
+    });
+
+    const res = await response.json();
+    if (response.ok) {
+      return { status: true, data: res.data };
+    } else {
+      return { status: false, message: res.error || "ไม่พบข้อมูลบิลจ่าย" };
+    }
+  } catch (error: any) {
+    console.error("Error fetching expense bill by ID:", error);
+    return { status: false, message: error.message || "เกิดข้อผิดพลาด" };
+  }
+}
+
+// Delete Expense Bill
+export async function deleteExpenseBill(id: string) {
+  try {
+    const response = await fetch(`${apiURL}/expensebill/${id}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+
+    if (response.ok) {
+      return { status: true, message: "ลบบิลจ่ายสำเร็จ" };
+    } else {
+      const res = await response.json();
+      return { status: false, message: res.error || "ลบบิลจ่ายไม่สำเร็จ" };
+    }
+  } catch (error: any) {
+    console.error("Error deleting expense bill:", error);
+    return { status: false, message: error.message || "เกิดข้อผิดพลาด" };
+  }
+  
+}
+
+
+
 function getAuthToken() {
   return sessionStorage.getItem("access_token") || "";
 }
@@ -705,5 +791,5 @@ export {
   updateSubmission,
   deleteSubmission,
   updateHeadingStatus,
-  
+
 };

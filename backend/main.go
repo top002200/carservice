@@ -29,7 +29,7 @@ func main() {
 
 	// Protected routes (Routes ที่ต้องการการยืนยันตัวตน)
 	protectedRoutes := r.Group("/")
-	protectedRoutes.Use(middlewares.AuthMiddleware()) // ใช้ AuthMiddleware ใน protectedRoutes
+	protectedRoutes.Use(middlewares.AuthMiddleware())
 	{
 		// Routes สำหรับ Admin
 		protectedRoutes.POST("/admin", controllers.CreateAdmin)
@@ -60,15 +60,21 @@ func main() {
 		protectedRoutes.DELETE("/submission/:id", controllers.DeleteSubmission)
 
 		// Routes สำหรับ Bill
-		protectedRoutes.POST("/bill", controllers.CreateBill) // สร้างบิลใหม่
-		protectedRoutes.GET("/bill/:bill_id", controllers.GetBillByID) // รับข้อมูลบิลตาม BillID
-		protectedRoutes.GET("/bills", controllers.GetAllBills) // รับข้อมูลบิลทั้งหมด
+		protectedRoutes.POST("/bill", controllers.CreateBill)
+		protectedRoutes.GET("/bill/:bill_id", controllers.GetBillByID)
+		protectedRoutes.GET("/bills", controllers.GetAllBills)
+
+		// ✅ Routes สำหรับ ExpenseBill (บิลจ่าย)
+		protectedRoutes.POST("/expensebill", controllers.CreateExpenseBill)
+		protectedRoutes.GET("/expensebills", controllers.GetAllExpenseBills)
+		protectedRoutes.GET("/expensebill/:id", controllers.GetExpenseBillByID)
+		protectedRoutes.DELETE("/expensebill/:id", controllers.DeleteExpenseBill)
 	}
 
 	// ตรวจสอบพอร์ตที่จะใช้ในการรันเซิร์ฟเวอร์
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080" // ถ้าไม่ได้ตั้งค่าพอร์ตใน environment variable ใช้พอร์ต 8080 เป็นค่าเริ่มต้น
+		port = "8080"
 	}
 
 	// รันเซิร์ฟเวอร์
@@ -76,15 +82,12 @@ func main() {
 }
 
 // CORSMiddleware เป็น middleware ที่ใช้สำหรับการตั้งค่า CORS
-// CORSMiddleware เป็น middleware ที่ใช้สำหรับการตั้งค่า CORS
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// กำหนดแหล่งที่อนุญาตให้เข้าถึง API
 		allowedOrigins := []string{
-			"http://localhost:5173", // แหล่งที่มาจาก frontend
+			"http://localhost:5173",
 		}
 
-		// ตรวจสอบว่า Origin ที่เข้ามาใน request อยู่ใน allowedOrigins หรือไม่
 		origin := c.Request.Header.Get("Origin")
 		for _, allowedOrigin := range allowedOrigins {
 			if origin == allowedOrigin {
@@ -93,18 +96,15 @@ func CORSMiddleware() gin.HandlerFunc {
 			}
 		}
 
-		// กำหนด headers อื่นๆ สำหรับ CORS
 		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
 		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
 		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT, PATCH, DELETE")
 
-		// ถ้าเป็น OPTIONS request ให้ตอบกลับด้วย 204
 		if c.Request.Method == "OPTIONS" {
 			c.AbortWithStatus(204)
 			return
 		}
 
-		// ไปยัง middleware ถัดไป
 		c.Next()
 	}
 }

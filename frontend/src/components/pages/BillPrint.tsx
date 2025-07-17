@@ -1,7 +1,6 @@
-import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { BillData } from "../../interface/IBill";
-import logo from "../../assets/image/PEA Logo on Violet.png";
+
 import { Button } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPrint, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
@@ -193,7 +192,16 @@ const BillPrint = () => {
   };
 
   return (
-    <div className="container mt-3">
+    <div
+      className="container mt-3"
+      style={{
+        border: "1px solid #ccc",
+        borderRadius: "10px",
+        padding: "20px",
+        backgroundColor: "#f5f5f5", // ✅ พื้นหลังเทาอ่อน
+        boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
+      }}
+    >
       {/* Action buttons */}
       <div className="d-flex justify-content-between mb-3 no-print">
         <Button variant="outline-secondary" onClick={handleBack}>
@@ -212,7 +220,7 @@ const BillPrint = () => {
         style={{
           width: "80mm",
           margin: "0 auto",
-          padding: "10px",
+          padding: "5px",
           fontFamily: "'TH Sarabun New', sans-serif",
           fontSize: "14px",
         }}
@@ -224,7 +232,7 @@ const BillPrint = () => {
             alt="PEA Logo"
             style={{
               height: "100px",
-              marginBottom: "5px",
+              marginBottom: "0px",
             }}
           />
           <h5
@@ -379,35 +387,35 @@ const BillPrint = () => {
       {/* Print styles */}
       <style>
         {`
-          @media print {
-            body * {
-              visibility: hidden;
-              margin: 0;
-              padding: 0;
+            @media print {
+              body * {
+                visibility: hidden;
+                margin: 0;
+                padding: 0;
+              }
+              #bill-to-print, #bill-to-print * {
+                visibility: visible;
+              }
+              #bill-to-print {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 80mm;
+                margin: 0;
+                padding: 10px;
+                border: none;
+                box-shadow: none;
+                font-size: 14px;
+              }
+              .no-print {
+                display: none !important;
+              }
+              @page {
+                size: 80mm auto;
+                margin: 0;
+              }
             }
-            #bill-to-print, #bill-to-print * {
-              visibility: visible;
-            }
-            #bill-to-print {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 80mm;
-              margin: 0;
-              padding: 10px;
-              border: none;
-              box-shadow: none;
-              font-size: 14px;
-            }
-            .no-print {
-              display: none !important;
-            }
-            @page {
-              size: 80mm auto;
-              margin: 0;
-            }
-          }
-        `}
+          `}
       </style>
     </div>
   );
