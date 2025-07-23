@@ -86,6 +86,8 @@ const AddBill = () => {
   const [showAllCarInfo, setShowAllCarInfo] = useState(false);
   const [showAllReferences, setShowAllReferences] = useState(false);
   const navigate = useNavigate();
+  const [customExtension1, setCustomExtension1] = useState(false);
+const [customExtension3, setCustomExtension3] = useState(false);
 
   // Automatic total calculation
   useEffect(() => {
@@ -498,79 +500,127 @@ const AddBill = () => {
             </div>
           </div>
 
-          {/* 4. บริการเสริม */}
-          <div className="card mb-1">
-            <div className="card-header bg-purple text-black">
-              <h5 className="mb-0">4. บริการเสริม</h5>
-            </div>
-            <div className="card-body">
-              <div className="row">
-                <div className="col-md-6 mb-3">
-                  <div className="row">
-                    <div className="col-md-8">
-                      <select
-                        className="form-control"
-                        name="extension1"
-                        value={formData.extension1}
-                        onChange={handleInputChange}
-                      >
-                        <option value="">-- เลือกบริการเสริม --</option>
-                        <option value="N1">N1</option>
-                        <option value="N2">N2</option>
-                        <option value="N3">N3</option>
-                        <option value="N4">N4</option>
-                        <option value="กระจก">กระจก</option>
-                        <option value="บังโซ่">บังโซ่</option>
-                      </select>
-                    </div>
-                    <div className="col-md-4">
-                      <input
-                        type="number"
-                        className="form-control"
-                        name="extension2"
-                        value={formData.extension2 ?? undefined} // หรือใช้ ?? '' หรือ ?? 0
-                        onChange={handleInputChange}
-                        placeholder="ราคา"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                </div>
-                <div className="col-md-6 mb-3">
-                  <div className="row">
-                    <div className="col-md-8">
-                      <select
-                        className="form-control"
-                        name="extension3"
-                        value={formData.extension3}
-                        onChange={handleInputChange}
-                      >
-                        <option value="">-- เลือกบริการเสริม --</option>
-                        <option value="N1">N1</option>
-                        <option value="N2">N2</option>
-                        <option value="N3">N3</option>
-                        <option value="N4">N4</option>
-                        <option value="กระจก">กระจก</option>
-                        <option value="บังโซ่">บังโซ่</option>
-                      </select>
-                    </div>
-                    <div className="col-md-4">
-                      <input
-                        type="number"
-                        className="form-control"
-                        name="extension4"
-                        value={formData.extension4 ?? undefined} // หรือใช้ ?? '' หรือ ?? 0
-                        onChange={handleInputChange}
-                        placeholder="ราคา"
-                        min="0"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* 4. บริการเสริม */}
+<div className="card mb-1">
+  <div className="card-header bg-purple text-black">
+    <h5 className="mb-0">4. บริการเสริม</h5>
+  </div>
+  <div className="card-body">
+    <div className="row">
+      {/* Extension 1 + ราคา */}
+      <div className="col-md-6 mb-3">
+        <div className="row">
+          <div className="col-md-8">
+            {customExtension1 ? (
+              <input
+                type="text"
+                className="form-control"
+                name="extension1"
+                placeholder="พิมพ์ชื่อบริการเสริม"
+                value={formData.extension1}
+                onChange={handleInputChange}
+                onBlur={() => {
+                  if (!formData.extension1) setCustomExtension1(false);
+                }}
+              />
+            ) : (
+              <select
+                className="form-control"
+                name="extension1"
+                value={formData.extension1}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "__custom__") {
+                    setCustomExtension1(true);
+                    formData.extension1 = ""; // ล้างค่าเดิมก่อนให้กรอกใหม่
+                  } else {
+                    handleInputChange(e);
+                  }
+                }}
+              >
+                <option value="">-- เลือกบริการเสริม --</option>
+                <option value="N1">N1</option>
+                <option value="N2">N2</option>
+                <option value="N3">N3</option>
+                <option value="N4">N4</option>
+                <option value="กระจก">กระจก</option>
+                <option value="บังโซ่">บังโซ่</option>
+                <option value="__custom__">เพิ่มเติม...</option>
+              </select>
+            )}
           </div>
+          <div className="col-md-4">
+            <input
+              type="number"
+              className="form-control"
+              name="extension2"
+              value={formData.extension2 ?? undefined}
+              onChange={handleInputChange}
+              placeholder="ราคา"
+              min="0"
+            />
+          </div>
+        </div>
+      </div>
 
+      {/* Extension 3 + ราคา */}
+      <div className="col-md-6 mb-3">
+        <div className="row">
+          <div className="col-md-8">
+            {customExtension3 ? (
+              <input
+                type="text"
+                className="form-control"
+                name="extension3"
+                placeholder="พิมพ์ชื่อบริการเสริม"
+                value={formData.extension3}
+                onChange={handleInputChange}
+                onBlur={() => {
+                  if (!formData.extension3) setCustomExtension3(false);
+                }}
+              />
+            ) : (
+              <select
+                className="form-control"
+                name="extension3"
+                value={formData.extension3}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === "__custom__") {
+                    setCustomExtension3(true);
+                    formData.extension3 = "";
+                  } else {
+                    handleInputChange(e);
+                  }
+                }}
+              >
+                <option value="">-- เลือกบริการเสริม --</option>
+                <option value="N1">N1</option>
+                <option value="N2">N2</option>
+                <option value="N3">N3</option>
+                <option value="N4">N4</option>
+                <option value="กระจก">กระจก</option>
+                <option value="บังโซ่">บังโซ่</option>
+                <option value="__custom__">เพิ่มเติม...</option>
+              </select>
+            )}
+          </div>
+          <div className="col-md-4">
+            <input
+              type="number"
+              className="form-control"
+              name="extension4"
+              value={formData.extension4 ?? undefined}
+              onChange={handleInputChange}
+              placeholder="ราคา"
+              min="0"
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
           {/* 5. ข้อมูลอ้างอิง */}
           <div className="card mb-1">
             <div className="card-header bg-purple text-black d-flex justify-content-between align-items-center">

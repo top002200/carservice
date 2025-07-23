@@ -73,6 +73,11 @@ type Bill struct {
 
 	Total float64 `json:"total,omitempty"`
 
+	// ✅ ฟิลด์ใหม่ (optional ทั้งหมด)
+	AdjustmentType   *string  `json:"adjustment_type,omitempty"`   // "เพิ่ม" หรือ "ลด"
+	AdjustmentNote   *string  `json:"adjustment_note,omitempty"`   // หมายเหตุ
+	AdjustmentAmount *float64 `json:"adjustment_amount,omitempty"` // จำนวนเงินที่เพิ่ม/ลด
+
 	// เวลาสร้างและอัปเดต
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`

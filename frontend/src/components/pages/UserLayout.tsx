@@ -108,6 +108,18 @@ const UserLayout: React.FC = () => {
                 💸 รายการบิลจ่าย
               </Button>
             </li>
+            <li className="mb-3">
+              <Button
+                variant="outline-warning"
+                className="w-100"
+                onClick={() => {
+                  navigate("/dashboard/เงินคืน");
+                  setShowMenu(false);
+                }}
+              >
+                🧾 รายงานเงินคืน
+              </Button>
+            </li>
           </ul>
         </Offcanvas.Body>
       </Offcanvas>

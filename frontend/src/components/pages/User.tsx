@@ -3,14 +3,11 @@ import { Table, Button, Modal, Form, Pagination } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faCircleInfo,
-  faEdit,
-  faFileExcel,
   faFilePdf,
   faPlus,
-  faTrashCan,
   faMinus,
 } from "@fortawesome/free-solid-svg-icons";
-import { getAllBills } from "../../services/api";
+import { getAllBills, updateBill } from "../../services/api";
 import Swal from "sweetalert2";
 import { useNavigate } from "react-router-dom";
 import moment from "moment";
@@ -46,6 +43,11 @@ const User: React.FC = () => {
     start: "",
     end: "",
   });
+  const [showAdjustModal, setShowAdjustModal] = useState(false);
+  const [adjustType, setAdjustType] = useState<"เพิ่ม" | "ลด" | null>(null);
+  const [adjustNote, setAdjustNote] = useState("");
+  const [adjustAmount, setAdjustAmount] = useState<number | null>(null);
+  const [adjustTargetId, setAdjustTargetId] = useState<number | null>(null);
 
   const fetchBills = async () => {
     try {
@@ -68,12 +70,27 @@ const User: React.FC = () => {
     fetchBills();
   }, []);
 
-  const handleMonthChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedMonth(e.target.value);
+  const openAdjustmentModal = (billId: number, type: "เพิ่ม" | "ลด") => {
+    setAdjustTargetId(billId);
+    setAdjustType(type);
+    setAdjustNote("");
+    setAdjustAmount(null);
+    setShowAdjustModal(true);
   };
 
-  const handleYearChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedYear(e.target.value);
+  const handleAdjustment = async (billId: number, type: "เพิ่ม" | "ลด") => {
+    try {
+      const response = await updateBill(billId, { adjustment_type: type });
+      if (response.status) {
+        Swal.fire("สำเร็จ", `บันทึกว่าเงิน${type}แล้ว`, "success");
+        fetchBills(); // อัปเดตข้อมูลหลังแก้ไข
+      } else {
+        Swal.fire("เกิดข้อผิดพลาด", response.message, "error");
+      }
+    } catch (error) {
+      Swal.fire("ผิดพลาด", "ไม่สามารถบันทึกได้", "error");
+      console.error("Error saving adjustment:", error);
+    }
   };
 
   const filteredData = bills
@@ -475,38 +492,64 @@ const User: React.FC = () => {
                   </Button>
                 </td>
                 <td>
-                  <Button
-                    variant="outline-primary"
-                    className="me-2"
-                    style={{ width: "40px" }}
-                    onClick={() => navigate(`/user/editbill/${item.id}`)}
-                  >
-                    <FontAwesomeIcon icon={faPlus} />
-                  </Button>
-                  <Button
-                    variant="outline-danger"
-                    onClick={() => {
-                      Swal.fire({
-                        title: "คุณแน่ใจหรือไม่ที่จะลบข้อมูลนี้?",
-                        text: "ข้อมูลจะถูกลบไปและไม่สามารถกู้คืนได้",
-                        icon: "warning",
-                        showCancelButton: true,
-                        confirmButtonText: "ลบ",
-                        cancelButtonText: "ยกเลิก",
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          // Here you would call your delete API
-                          Swal.fire(
-                            "ลบสำเร็จ!",
-                            "ข้อมูลบิลได้ถูกลบเรียบร้อยแล้ว.",
-                            "success"
-                          );
-                        }
-                      });
-                    }}
-                  >
-                    <FontAwesomeIcon icon={faMinus} />
-                  </Button>
+                  {item.adjustment_type ? (
+                    <span
+                      className="badge bg-secondary px-3 py-2"
+                      style={{ fontSize: "14px", borderRadius: "10px" }}
+                    >
+                      ✅ บันทึกเงิน{item.adjustment_type}แล้ว
+                    </span>
+                  ) : (
+                    <div
+                      className="d-flex justify-content-center align-items-center"
+                      style={{
+                        border: "1px solid #dee2e6",
+                        borderRadius: "12px",
+                        padding: "8px",
+                        minHeight: "45px",
+                        gap: "10px",
+                        backgroundColor: "#f9f9f9",
+                      }}
+                    >
+                      <Button
+                        variant="outline-success"
+                        size="sm"
+                        title="บันทึกว่าเงินเพิ่ม"
+                        onClick={() => openAdjustmentModal(item.id!, "เพิ่ม")}
+                        style={{
+                          borderRadius: "8px",
+                          padding: "6px 10px",
+                          fontWeight: "bold",
+                          fontSize: "14px",
+                          boxShadow: "0 1px 4px rgba(0, 128, 0, 0.2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faPlus} />
+                      </Button>
+
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        title="บันทึกว่าเงินลด"
+                        onClick={() => openAdjustmentModal(item.id!, "ลด")}
+                        style={{
+                          borderRadius: "8px",
+                          padding: "6px 10px",
+                          fontWeight: "bold",
+                          fontSize: "14px",
+                          boxShadow: "0 1px 4px rgba(220, 53, 69, 0.2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faMinus} />
+                      </Button>
+                    </div>
+                  )}
                 </td>
               </tr>
             ))}
@@ -533,6 +576,83 @@ const User: React.FC = () => {
             onClick={() => handlePageChange(currentPage + 1)}
           />
         </Pagination>
+        <Modal
+          show={showAdjustModal}
+          onHide={() => setShowAdjustModal(false)}
+          centered
+        >
+          <Modal.Header closeButton>
+            <Modal.Title>บันทึกเงิน{adjustType}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <Form>
+              <Form.Group className="mb-3">
+                <Form.Label>จำนวนเงิน</Form.Label>
+                <Form.Control
+                  type="number"
+                  placeholder="กรอกจำนวนเงิน"
+                  value={adjustAmount ?? ""}
+                  onChange={(e) => setAdjustAmount(parseFloat(e.target.value))}
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>หมายเหตุ</Form.Label>
+                <Form.Control
+                  as="textarea"
+                  rows={2}
+                  placeholder="กรอกหมายเหตุ"
+                  value={adjustNote}
+                  onChange={(e) => setAdjustNote(e.target.value)}
+                />
+              </Form.Group>
+            </Form>
+          </Modal.Body>
+          <Modal.Footer>
+            <Button
+              variant="secondary"
+              onClick={() => setShowAdjustModal(false)}
+            >
+              ยกเลิก
+            </Button>
+            <Button
+              variant="primary"
+              onClick={async () => {
+                if (!adjustTargetId || adjustAmount === null) {
+                  Swal.fire("กรุณากรอกข้อมูลให้ครบ", "", "warning");
+                  return;
+                }
+                try {
+                  const res = await updateBill(adjustTargetId, {
+                    adjustment_type: adjustType || undefined,
+                    adjustment_note: adjustNote,
+                    adjustment_amount: adjustAmount,
+                  });
+
+                  if (res.status) {
+                    Swal.fire(
+                      "สำเร็จ",
+                      `บันทึกเงิน${adjustType}แล้ว`,
+                      "success"
+                    );
+                    fetchBills();
+                  } else {
+                    Swal.fire("ผิดพลาด", res.message, "error");
+                  }
+                } catch (err) {
+                  Swal.fire(
+                    "เกิดข้อผิดพลาด",
+                    "ไม่สามารถอัปเดตข้อมูลได้",
+                    "error"
+                  );
+                } finally {
+                  setShowAdjustModal(false);
+                }
+              }}
+            >
+              บันทึก
+            </Button>
+          </Modal.Footer>
+        </Modal>
 
         {/* Detail Modal */}
         <Modal

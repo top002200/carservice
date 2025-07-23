@@ -368,6 +368,19 @@ func UpdateBill(c *gin.Context) {
 		existingBill.Description = updateData.Description
 	}
 
+	// ✅ Update adjustment fields
+	if updateData.AdjustmentType != nil && *updateData.AdjustmentType != "" {
+		existingBill.AdjustmentType = updateData.AdjustmentType
+	}
+
+	if updateData.AdjustmentNote != nil && *updateData.AdjustmentNote != "" {
+		existingBill.AdjustmentNote = updateData.AdjustmentNote
+	}
+
+	if updateData.AdjustmentAmount != nil {
+		existingBill.AdjustmentAmount = updateData.AdjustmentAmount
+	}
+
 	// Recalculate total after all updates
 	existingBill.Total = calculateTotal(&existingBill)
 	existingBill.UpdatedAt = time.Now()

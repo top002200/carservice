@@ -634,7 +634,7 @@ export async function getBillById(billId: string) {
 }
 
 // อัปเดตบิล
-export async function updateBill(billId: string, data: Partial<BillData>) {
+export async function updateBill(billId: number | string, data: Partial<BillData>) {
   try {
     const response = await fetch(`${apiURL}/bill/${billId}`, {
       method: "PUT",
@@ -642,12 +642,20 @@ export async function updateBill(billId: string, data: Partial<BillData>) {
       body: JSON.stringify(data),
     });
 
-    return response.ok ? await response.json() : Promise.reject(await response.json());
+    const resText = await response.text();
+
+    if (!response.ok) {
+      throw new Error(resText || `HTTP ${response.status}`);
+    }
+
+    const res = resText ? JSON.parse(resText) : { status: true };
+    return res;
   } catch (error) {
     console.error("Error updating bill:", error);
-    return { status: false, message: "An error occurred" };
+    return { status: false, message: "เกิดข้อผิดพลาดในการอัปเดตบิล" };
   }
 }
+
 
 // ลบบิล
 export async function deleteBill(billId: string) {

@@ -243,7 +243,7 @@ const BillPrint = () => {
               fontWeight: "bold",
             }}
           >
-            สถานตรวจสภาพรถท็อป-นิว เซอร์วิซ
+            สถานตรวจสภาพรถคลองหาด
           </h5>
           <div style={{ marginBottom: "5px" }}>
             <div>เลขที่บิล: {billData.bill_number || "-"}</div>
