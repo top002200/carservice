@@ -65,7 +65,6 @@ func main() {
 		protectedRoutes.GET("/bills", controllers.GetAllBills)
 		protectedRoutes.PUT("/bill/:id", controllers.UpdateBill) // ✅ เพิ่มตรงนี้
 
-
 		// ✅ Routes สำหรับ ExpenseBill (บิลจ่าย)
 		protectedRoutes.POST("/expensebill", controllers.CreateExpenseBill)
 		protectedRoutes.GET("/expensebills", controllers.GetAllExpenseBills)

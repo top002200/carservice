@@ -39,7 +39,7 @@ func CreateExpenseBill(c *gin.Context) {
 
 	if err := config.DB.Create(&bill).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": "error",
+			"status":  "error",
 			"message": "Failed to create expense bill",
 			"error":   err.Error(),
 		})
@@ -57,7 +57,7 @@ func GetAllExpenseBills(c *gin.Context) {
 	var bills []models.ExpenseBill
 	if err := config.DB.Find(&bills).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": "error",
+			"status":  "error",
 			"message": "Failed to retrieve expense bills",
 			"error":   err.Error(),
 		})
@@ -78,12 +78,12 @@ func GetExpenseBillByID(c *gin.Context) {
 	if err := config.DB.First(&bill, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			c.JSON(http.StatusNotFound, gin.H{
-				"status": "error",
+				"status":  "error",
 				"message": "Expense bill not found",
 			})
 		} else {
 			c.JSON(http.StatusInternalServerError, gin.H{
-				"status": "error",
+				"status":  "error",
 				"message": "Error retrieving expense bill",
 				"error":   err.Error(),
 			})
@@ -104,7 +104,7 @@ func DeleteExpenseBill(c *gin.Context) {
 
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"status": "error",
+			"status":  "error",
 			"message": "Failed to delete expense bill",
 			"error":   result.Error.Error(),
 		})
@@ -113,14 +113,14 @@ func DeleteExpenseBill(c *gin.Context) {
 
 	if result.RowsAffected == 0 {
 		c.JSON(http.StatusNotFound, gin.H{
-			"status": "error",
+			"status":  "error",
 			"message": "Expense bill not found",
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status": "success",
+		"status":  "success",
 		"message": "Expense bill deleted successfully",
 	})
 }
