@@ -450,28 +450,7 @@ async function createSubmission(data: SubmissionData) {
 }
 
 // Get All Submissions
-async function getAllSubmissions(userId: string) {
-  try {
-    const response = await fetch(`${apiURL}/submissions`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
 
-    if (response.ok) {
-      const data = await response.json();
-      return { status: true, data };
-    } else {
-      const error = await response.json();
-      return {
-        status: false,
-        message: error.message || "Failed to fetch submissions",
-      };
-    }
-  } catch (error) {
-    console.error("Error fetching submissions:", error);
-    return { status: false, message: "An unexpected error occurred" };
-  }
-}
 
 // Get Submission by ID
 async function getSubmissionById(submissionId: string) {
@@ -794,7 +773,6 @@ export {
   deleteHeading,
   getAuthToken,
   createSubmission,
-  getAllSubmissions,
   getSubmissionById,
   updateSubmission,
   deleteSubmission,

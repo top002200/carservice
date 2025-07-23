@@ -55,9 +55,6 @@ const HeadingDash: React.FC = () => {
     fetchUsersData();
   }, [id]);
 
-  const filteredData = users.filter((user) =>
-    user.user_name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   // Filter users based on search term and status filter
   const filteredStatus = users.filter((user) => {

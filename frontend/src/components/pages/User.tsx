@@ -31,8 +31,8 @@ const User: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedMonth, setSelectedMonth] = useState("");
-  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedMonth] = useState("");
+  const [selectedYear] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 9;
   const navigate = useNavigate();
@@ -78,20 +78,6 @@ const User: React.FC = () => {
     setShowAdjustModal(true);
   };
 
-  const handleAdjustment = async (billId: number, type: "เพิ่ม" | "ลด") => {
-    try {
-      const response = await updateBill(billId, { adjustment_type: type });
-      if (response.status) {
-        Swal.fire("สำเร็จ", `บันทึกว่าเงิน${type}แล้ว`, "success");
-        fetchBills(); // อัปเดตข้อมูลหลังแก้ไข
-      } else {
-        Swal.fire("เกิดข้อผิดพลาด", response.message, "error");
-      }
-    } catch (error) {
-      Swal.fire("ผิดพลาด", "ไม่สามารถบันทึกได้", "error");
-      console.error("Error saving adjustment:", error);
-    }
-  };
 
   const filteredData = bills
     .filter((bill) => {
