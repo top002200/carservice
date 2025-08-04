@@ -78,8 +78,17 @@ func main() {
 		port = "8080"
 	}
 
+	// ✅ เพิ่ม root endpoint สำหรับเช็คสถานะ backend
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":  "success",
+			"message": "Backend is running",
+		})
+	})
+
 	// รันเซิร์ฟเวอร์
 	r.Run(":" + port)
+
 }
 
 // CORSMiddleware เป็น middleware ที่ใช้สำหรับการตั้งค่า CORS

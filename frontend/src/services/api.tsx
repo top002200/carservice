@@ -5,9 +5,9 @@ import { SubmissionData } from "../interface/ISubmission";
 import { BillData } from "../interface/IBill";
 import { ExpenseBillData } from "../interface/IExpenseBill";
 
-
 // const apiURL = "http://localhost:8080";
-const apiURL = "http://localhost:8080";
+const apiURL = "https://carservice-j2jl.onrender.com";
+
 
 const getAuthHeaders = () => {
   const token = sessionStorage.getItem("access_token") || "";
@@ -451,7 +451,6 @@ async function createSubmission(data: SubmissionData) {
 
 // Get All Submissions
 
-
 // Get Submission by ID
 async function getSubmissionById(submissionId: string) {
   try {
@@ -559,7 +558,7 @@ export const createBill = async (billData: BillData) => {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${getAuthToken()}`
+        Authorization: `Bearer ${getAuthToken()}`,
       },
       body: JSON.stringify(billData),
     });
@@ -605,7 +604,9 @@ export async function getBillById(billId: string) {
       headers: getAuthHeaders(),
     });
 
-    return response.ok ? await response.json() : Promise.reject(await response.json());
+    return response.ok
+      ? await response.json()
+      : Promise.reject(await response.json());
   } catch (error) {
     console.error("Error fetching bill:", error);
     return { status: false, message: "An error occurred" };
@@ -613,7 +614,10 @@ export async function getBillById(billId: string) {
 }
 
 // อัปเดตบิล
-export async function updateBill(billId: number | string, data: Partial<BillData>) {
+export async function updateBill(
+  billId: number | string,
+  data: Partial<BillData>
+) {
   try {
     const response = await fetch(`${apiURL}/bill/${billId}`, {
       method: "PUT",
@@ -635,7 +639,6 @@ export async function updateBill(billId: number | string, data: Partial<BillData
   }
 }
 
-
 // ลบบิล
 export async function deleteBill(billId: string) {
   try {
@@ -644,7 +647,9 @@ export async function deleteBill(billId: string) {
       headers: getAuthHeaders(),
     });
 
-    return response.ok ? { status: true, message: "Bill deleted successfully" } : Promise.reject(await response.json());
+    return response.ok
+      ? { status: true, message: "Bill deleted successfully" }
+      : Promise.reject(await response.json());
   } catch (error) {
     console.error("Error deleting bill:", error);
     return { status: false, message: "An error occurred" };
@@ -654,12 +659,17 @@ export async function deleteBill(billId: string) {
 // ดึงบิลตามช่วงเวลา
 export async function getBillsByDateRange(startDate: string, endDate: string) {
   try {
-    const response = await fetch(`${apiURL}/bills?start_date=${startDate}&end_date=${endDate}`, {
-      method: "GET",
-      headers: getAuthHeaders(),
-    });
+    const response = await fetch(
+      `${apiURL}/bills?start_date=${startDate}&end_date=${endDate}`,
+      {
+        method: "GET",
+        headers: getAuthHeaders(),
+      }
+    );
 
-    return response.ok ? await response.json() : Promise.reject(await response.json());
+    return response.ok
+      ? await response.json()
+      : Promise.reject(await response.json());
   } catch (error) {
     console.error("Error fetching bills by date range:", error);
     return { status: false, message: "An error occurred" };
@@ -677,9 +687,16 @@ export async function createExpenseBill(data: ExpenseBillData) {
 
     const res = await response.json();
     if (response.ok) {
-      return { status: true, data: res.data, message: res.message || "สร้างบิลจ่ายสำเร็จ" };
+      return {
+        status: true,
+        data: res.data,
+        message: res.message || "สร้างบิลจ่ายสำเร็จ",
+      };
     } else {
-      return { status: false, message: res.error || "ไม่สามารถสร้างบิลจ่ายได้" };
+      return {
+        status: false,
+        message: res.error || "ไม่สามารถสร้างบิลจ่ายได้",
+      };
     }
   } catch (error: any) {
     console.error("Error creating expense bill:", error);
@@ -699,7 +716,10 @@ export async function getAllExpenseBills() {
     if (response.ok) {
       return { status: true, data: res.data };
     } else {
-      return { status: false, message: res.error || "ไม่สามารถโหลดข้อมูลบิลจ่ายได้" };
+      return {
+        status: false,
+        message: res.error || "ไม่สามารถโหลดข้อมูลบิลจ่ายได้",
+      };
     }
   } catch (error: any) {
     console.error("Error fetching expense bills:", error);
@@ -745,10 +765,7 @@ export async function deleteExpenseBill(id: string) {
     console.error("Error deleting expense bill:", error);
     return { status: false, message: error.message || "เกิดข้อผิดพลาด" };
   }
-  
 }
-
-
 
 function getAuthToken() {
   return sessionStorage.getItem("access_token") || "";
@@ -777,5 +794,4 @@ export {
   updateSubmission,
   deleteSubmission,
   updateHeadingStatus,
-
 };
