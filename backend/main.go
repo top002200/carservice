@@ -87,6 +87,7 @@ func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		allowedOrigins := []string{
 			"http://localhost:5173",
+			"https://carservice-klonghad.netlify.app", // ✅ ใส่โดเมน Netlify ของคุณ
 		}
 
 		origin := c.Request.Header.Get("Origin")
