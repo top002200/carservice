@@ -21,6 +21,7 @@ import Dashboard from "../components/pages/Dashboard";
 import RefundReport from "../components/pages/RefundReport"; // ✅ เพิ่มหน้านี้
 
 import { getAuthToken } from "../services/api";
+import UserAdmin from "../components/pages/UserAdmin";
 
 // ✅ Component สำหรับ Protected Route
 function ProtectedRoute({
@@ -42,18 +43,19 @@ export default function AppRoutes() {
       <Routes>
         {/* Public Route */}
         <Route path="/" element={<Login />} />
-                <Route
-          path="/dashboard/เงินคืน"
-          element={
-            <RefundReport  />
-          }
-        />
+         
 
         {/* Admin Routes */}
         <Route
           path="/dashboard"
           element={
             <ProtectedRoute element={<Dashboard />} requiredRole="admin" />
+          }
+        />
+        <Route
+          path="/dashboard/เงินคืน"
+          element={
+            <ProtectedRoute element={<RefundReport />} requiredRole="admin" />
           }
         />
         <Route
@@ -78,6 +80,12 @@ export default function AppRoutes() {
           path="/dashboard/edit/:id"
           element={
             <ProtectedRoute element={<EditHeading />} requiredRole="admin" />
+          }
+        />
+                <Route
+          path="/dashboard/useradmin"
+          element={
+            <ProtectedRoute element={<UserAdmin />} requiredRole="admin" />
           }
         />
 

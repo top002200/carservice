@@ -120,13 +120,7 @@ func CreateBill(c *gin.Context) {
 	}
 
 	// ✅ ตรวจสอบ field ที่จำเป็น
-	if bill.Name1 == "" || bill.Amount1 == 0 {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"status": "error",
-			"error":  "Name1 and Amount1 are required",
-		})
-		return
-	}
+
 
 	// ✅ สร้างหมายเลขบิล
 	billNumber, err := GenerateBillNumber(config.DB)

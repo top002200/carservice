@@ -18,6 +18,9 @@ const Dashboard: React.FC = () => {
   const goToUserManagement = () => {
     navigate('/dashboard/users');
   };
+  const goToplusdenide = () => {
+    navigate('/dashboard/useradmin');
+  };
 
   return (
     <div className="container mt-5">
@@ -30,6 +33,9 @@ const Dashboard: React.FC = () => {
           <p><strong>รหัสผู้ใช้งาน:</strong> {userId}</p>
 
           <div className="d-flex flex-column gap-2 mt-4">
+            <button className="btn btn-success" onClick={goToplusdenide}>
+              📄 รายงานเพิ่มลด
+            </button>
             <button className="btn btn-warning" onClick={goToRefundReport}>
               📄 รายงานเงินเพิ่มเงินคืน
             </button>

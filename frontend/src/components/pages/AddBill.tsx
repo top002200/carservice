@@ -180,15 +180,7 @@ const AddBill = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate
-    if (!formData.username || !formData.name1 || toNumber(formData.amount1) <= 0 || !formData.date) {
-      Swal.fire({
-        title: "ข้อมูลไม่ครบถ้วน",
-        text: "กรุณากรอกชื่อลูกค้า, รายการบริการอย่างน้อย 1 รายการ และวันที่",
-        icon: "warning",
-      });
-      return;
-    }
+   
 
     // ล็อกยอดรวมอีกครั้ง (ค่าเดียวกับที่แสดงบนหน้าจอ)
     const lockedTotal =
@@ -433,9 +425,9 @@ const AddBill = () => {
                     <tr>
                       <th>ทะเบียนรถ</th>
                       <th>ประเภทบริการ</th>
-                      <th>ค่าบริการ</th>
+                      <th>ค่าตรวจ</th>
                       <th>ภาษี/ค่าปรับ</th>
-                      <th>ค่าฝากต่อ</th>
+                      <th>ค่าบริการ</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -484,7 +476,7 @@ const AddBill = () => {
                               ] as number) ?? ""
                             }
                             onChange={handleInputChange}
-                            placeholder="ค่าบริการ"
+                            placeholder="ค่าตรวจ"
                             min="0"
                           />
                         </td>
@@ -514,7 +506,7 @@ const AddBill = () => {
                               ] as number) ?? ""
                             }
                             onChange={handleInputChange}
-                            placeholder="ค่าฝากต่อ"
+                            placeholder="ค่าบริการ"
                             min="0"
                           />
                         </td>

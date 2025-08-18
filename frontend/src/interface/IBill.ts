@@ -14,8 +14,8 @@ export interface BillData {
   };
 
   // รายการสินค้า/บริการ
-  name1: string;
-  amount1: number;
+  name1: string   | null;
+  amount1: number | null;
   name2: string;
   amount2: number | null;
   name3: string;

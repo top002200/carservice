@@ -143,6 +143,16 @@ const ExpenseBillPrint = () => {
         >
           ขอบคุณที่ใช้บริการ
         </div>
+        <div
+          style={{
+            marginTop: "10px",
+            fontSize: "30px",
+            textAlign: "left",
+            color: "#666",
+          }}
+        >
+          ผู้รับเงิน:____________________
+        </div>
       </div>
 
       {/* Print styles */}

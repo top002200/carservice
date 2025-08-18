@@ -26,7 +26,7 @@ interface Bill {
   [key: string]: any;
 }
 
-const User: React.FC = () => {
+const UserAdmin: React.FC = () => {
   const [bills, setBills] = useState<Bill[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [selectedBill, setSelectedBill] = useState<Bill | null>(null);
@@ -449,6 +449,7 @@ const User: React.FC = () => {
               <th>เบอร์โทร</th>
               <th>วันที่สร้าง</th>
               <th style={{ width: 100 }}>รายละเอียด</th>
+              <th style={{ width: 150 }}>เงินเพิ่มเงินคืน</th>
             </tr>
           </thead>
           <tbody>
@@ -475,7 +476,66 @@ const User: React.FC = () => {
                     <FontAwesomeIcon icon={faCircleInfo} />
                   </Button>
                 </td>
+                <td>
+                  {item.adjustment_type ? (
+                    <span
+                      className="badge bg-secondary px-3 py-2"
+                      style={{ fontSize: "14px", borderRadius: "10px" }}
+                    >
+                      ✅ บันทึกเงิน{item.adjustment_type}แล้ว
+                    </span>
+                  ) : (
+                    <div
+                      className="d-flex justify-content-center align-items-center"
+                      style={{
+                        border: "1px solid #dee2e6",
+                        borderRadius: "12px",
+                        padding: "8px",
+                        minHeight: "45px",
+                        gap: "10px",
+                        backgroundColor: "#f9f9f9",
+                      }}
+                    >
+                      <Button
+                        variant="outline-success"
+                        size="sm"
+                        title="บันทึกว่าเงินเพิ่ม"
+                        onClick={() => openAdjustmentModal(item.id!, "เพิ่ม")}
+                        style={{
+                          borderRadius: "8px",
+                          padding: "6px 10px",
+                          fontWeight: "bold",
+                          fontSize: "14px",
+                          boxShadow: "0 1px 4px rgba(0, 128, 0, 0.2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faPlus} />
+                      </Button>
 
+                      <Button
+                        variant="outline-danger"
+                        size="sm"
+                        title="บันทึกว่าเงินลด"
+                        onClick={() => openAdjustmentModal(item.id!, "ลด")}
+                        style={{
+                          borderRadius: "8px",
+                          padding: "6px 10px",
+                          fontWeight: "bold",
+                          fontSize: "14px",
+                          boxShadow: "0 1px 4px rgba(220, 53, 69, 0.2)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                        }}
+                      >
+                        <FontAwesomeIcon icon={faMinus} />
+                      </Button>
+                    </div>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>
@@ -761,4 +821,4 @@ const User: React.FC = () => {
   );
 };
 
-export default User;
+export default UserAdmin;
