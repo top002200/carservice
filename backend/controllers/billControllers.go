@@ -41,36 +41,56 @@ func GenerateBillNumber(db *gorm.DB) (string, error) {
 }
 
 // calculateTotal computes the total amount for a bill
+// helper deref
+func f64(p *float64) float64 {
+	if p == nil {
+		return 0
+	}
+	return *p
+}
+
+// รวมยอดแบบเดียวกับฟอร์ม AddBill:
+// amount1..4 + check1..4 + extension2/4 + tax1..4 + taxgo1..4 + typerefer1..4
 func calculateTotal(bill *models.Bill) float64 {
-	total := bill.Amount1
+	total := 0.0
 
-	// Add amounts from other items if they exist
-	if bill.Amount2 != nil {
-		total += *bill.Amount2
-	}
-	if bill.Amount3 != nil {
-		total += *bill.Amount3
-	}
-	if bill.Amount4 != nil {
-		total += *bill.Amount4
-	}
+	// amount
+	total += bill.Amount1
+	total += f64(bill.Amount2)
+	total += f64(bill.Amount3)
+	total += f64(bill.Amount4)
 
-	// Add taxes if they exist
-	if bill.Tax1 != nil {
-		total += *bill.Tax1
-	}
-	if bill.Tax2 != nil {
-		total += *bill.Tax2
-	}
-	if bill.Tax3 != nil {
-		total += *bill.Tax3
-	}
-	if bill.Tax4 != nil {
-		total += *bill.Tax4
-	}
+	// check
+	total += f64(bill.Check1)
+	total += f64(bill.Check2)
+	total += f64(bill.Check3)
+	total += f64(bill.Check4)
+
+	// extension (เฉพาะราคา)
+	total += f64(bill.Extension2)
+	total += f64(bill.Extension4)
+
+	// tax
+	total += f64(bill.Tax1)
+	total += f64(bill.Tax2)
+	total += f64(bill.Tax3)
+	total += f64(bill.Tax4)
+
+	// taxgo (ค่าฝากต่อ)
+	total += f64(bill.Taxgo1)
+	total += f64(bill.Taxgo2)
+	total += f64(bill.Taxgo3)
+	total += f64(bill.Taxgo4)
+
+	// typerefer1..4 (ตอนนี้เป็น *float64 แล้ว)
+	total += f64(bill.TypeRefer1)
+	total += f64(bill.TypeRefer2)
+	total += f64(bill.TypeRefer3)
+	total += f64(bill.TypeRefer4)
 
 	return total
 }
+
 
 // CreateBill creates a new bill
 func CreateBill(c *gin.Context) {
@@ -331,16 +351,17 @@ func UpdateBill(c *gin.Context) {
 	if updateData.Refer4 != "" {
 		existingBill.Refer4 = updateData.Refer4
 	}
-	if updateData.TypeRefer1 != "" {
+	// ✅ TypeRefer เปลี่ยนเป็น *float64 → เช็ค nil แทนเช็ค ""
+	if updateData.TypeRefer1 != nil {
 		existingBill.TypeRefer1 = updateData.TypeRefer1
 	}
-	if updateData.TypeRefer2 != "" {
+	if updateData.TypeRefer2 != nil {
 		existingBill.TypeRefer2 = updateData.TypeRefer2
 	}
-	if updateData.TypeRefer3 != "" {
+	if updateData.TypeRefer3 != nil {
 		existingBill.TypeRefer3 = updateData.TypeRefer3
 	}
-	if updateData.TypeRefer4 != "" {
+	if updateData.TypeRefer4 != nil {
 		existingBill.TypeRefer4 = updateData.TypeRefer4
 	}
 

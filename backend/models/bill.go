@@ -52,10 +52,11 @@ type Bill struct {
 	Refer3 string `json:"refer3,omitempty"`
 	Refer4 string `json:"refer4,omitempty"`
 
-	TypeRefer1 string `json:"typerefer1,omitempty"`
-	TypeRefer2 string `json:"typerefer2,omitempty"`
-	TypeRefer3 string `json:"typerefer3,omitempty"`
-	TypeRefer4 string `json:"typerefer4,omitempty"`
+	// แทน string ด้วย *float64
+	TypeRefer1 *float64 `json:"typerefer1,omitempty"`
+	TypeRefer2 *float64 `json:"typerefer2,omitempty"`
+	TypeRefer3 *float64 `json:"typerefer3,omitempty"`
+	TypeRefer4 *float64 `json:"typerefer4,omitempty"`
 
 	// ข้อมูลทะเบียนรถ
 	CarRegistration1 string `json:"car_registration1,omitempty"`

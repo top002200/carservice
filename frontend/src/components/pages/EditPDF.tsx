@@ -18,20 +18,27 @@ const EditPDF: React.FC<Props> = ({
   formatDate,
 }) => {
   const rowsPerPage = 20;
-  const pageCount = Math.ceil(data.length / rowsPerPage);
+
+  // เรียงตามวันที่
   const sortedData = [...data].sort(
     (a, b) =>
       new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
   );
 
+  const pageCount = Math.ceil(sortedData.length / rowsPerPage);
+
   const pages = Array.from({ length: pageCount }, (_, i) =>
     sortedData.slice(i * rowsPerPage, (i + 1) * rowsPerPage)
   );
 
-  const totalAll = data.reduce(
-    (sum, item) => sum + (parseFloat(item.total) || 0),
-    0
-  );
+  // helper แปลงตัวเลขจาก string/number (รองรับมี comma) -> number
+  const toNumber = (v: any): number => {
+    if (v === null || v === undefined || v === "") return 0;
+    const n = Number(String(v).replace(/,/g, "").trim());
+    return Number.isFinite(n) ? n : 0;
+  };
+
+  const totalAll = data.reduce((sum, item) => sum + toNumber(item.total), 0);
 
   const formatNumber = (value: number) =>
     value.toLocaleString(undefined, { minimumFractionDigits: 2 });
@@ -56,20 +63,19 @@ const EditPDF: React.FC<Props> = ({
     backgroundColor: index % 2 === 0 ? "#ffffff" : "#e0e0e0",
   });
 
-  const renderLines = (values: any[]) =>
+  // แสดงเป็นหลายบรรทัด และตัดเลขศูนย์ออกหาก isNumber = true
+  const renderLines = (values: any[], isNumber = false) =>
     values
       .filter((v) => {
         if (v === undefined || v === null || v === "") return false;
-        const num = parseFloat(v);
-        return isNaN(num) ? true : num !== 0;
+        const s = String(v).trim();
+        if (!isNumber) return s !== "0";
+        const n = toNumber(s);
+        return n !== 0; // ตัด 0 ออก
       })
       .map((v, idx) => (
         <div key={idx}>
-          {typeof v === "number"
-            ? v.toLocaleString()
-            : isNaN(parseFloat(v))
-            ? String(v)
-            : parseFloat(v).toLocaleString()}
+          {isNumber ? toNumber(v).toLocaleString() : String(v)}
         </div>
       ));
 
@@ -127,50 +133,46 @@ const EditPDF: React.FC<Props> = ({
               {pageData.map((item, index) => {
                 const styleRow = getRowStyle(index);
 
-                const carRegs = renderLines([
-                  item.car_registration1,
-                  item.car_registration2,
-                  item.car_registration3,
-                  item.car_registration4,
-                ]);
+                const carRegs = renderLines(
+                  [
+                    item.car_registration1,
+                    item.car_registration2,
+                    item.car_registration3,
+                    item.car_registration4,
+                  ],
+                  false
+                );
 
-                const amounts = renderLines([
-                  item.amount1,
-                  item.amount2,
-                  item.amount3,
-                  item.amount4,
-                ]);
+                const amounts = renderLines(
+                  [item.amount1, item.amount2, item.amount3, item.amount4],
+                  true
+                );
 
-                const taxes = renderLines([
-                  item.tax1,
-                  item.tax2,
-                  item.tax3,
-                  item.tax4,
-                ]);
+                const taxes = renderLines(
+                  [item.tax1, item.tax2, item.tax3, item.tax4],
+                  true
+                );
 
-                const taxgos = renderLines([
-                  item.taxgo1,
-                  item.taxgo2,
-                  item.taxgo3,
-                  item.taxgo4,
-                ]);
+                const taxgos = renderLines(
+                  [item.taxgo1, item.taxgo2, item.taxgo3, item.taxgo4],
+                  true
+                );
 
-                const extensionNames = renderLines([
-                  item.extension1,
-                  item.extension3,
-                ]);
+                const extensionNames = renderLines(
+                  [item.extension1, item.extension3],
+                  false
+                );
 
-                const extensionPrices = renderLines([
-                  item.extension2,
-                  item.extension4,
-                ]);
+                // ถ้าค่านี้เป็นตัวเลข ให้ส่ง isNumber = true
+                const extensionPrices = renderLines(
+                  [item.extension2, item.extension4],
+                  true
+                );
 
-                const typeRefers = renderLines([
-                  item.typerefer1,
-                  item.typerefer2,
-                  item.typerefer3,
-                  item.typerefer4,
-                ]);
+                const typeRefers = renderLines(
+                  [item.typerefer1, item.typerefer2, item.typerefer3, item.typerefer4],
+                  false
+                );
 
                 const paymentType =
                   item.payment_method === "cash"
@@ -215,9 +217,7 @@ const EditPDF: React.FC<Props> = ({
                     </td>
                     <td style={{ ...cellStyle, ...styleRow }}>{paymentType}</td>
                     <td style={{ ...rightAlignStyle, ...styleRow }}>
-                      {item.total
-                        ? parseFloat(item.total).toLocaleString()
-                        : "0.00"}
+                      {toNumber(item.total).toLocaleString()}
                     </td>
                   </tr>
                 );

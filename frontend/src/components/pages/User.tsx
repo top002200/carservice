@@ -78,7 +78,6 @@ const User: React.FC = () => {
     setShowAdjustModal(true);
   };
 
-
   const filteredData = bills
     .filter((bill) => {
       if (!bill.created_at) return false;
@@ -640,11 +639,11 @@ const User: React.FC = () => {
           </Modal.Footer>
         </Modal>
 
-        {/* Detail Modal */}
+        {/* Detail Modal (ใหม่) */}
         <Modal
           show={showModal}
           onHide={closeModal}
-          size="xl"
+          size="lg"
           centered
           dialogClassName="border-0 shadow rounded-4"
           contentClassName="rounded-4"
@@ -659,226 +658,197 @@ const User: React.FC = () => {
             style={{
               maxHeight: "70vh",
               overflowY: "auto",
-              padding: "30px",
+              padding: "24px",
               backgroundColor: "#fdfdfd",
+              fontFamily: "THSarabunNew, sans-serif",
+              fontSize: 16,
             }}
           >
             {selectedBill ? (
               <div className="container">
-                {/* ข้อมูลลูกค้า */}
-                <div className="mb-4">
-                  <h5 className="border-bottom pb-2 text-dark fw-bold">
-                    ข้อมูลลูกค้า
-                  </h5>
-                  <div className="row">
-                    <div className="col-md-4">
-                      <p>
-                        <b>ชื่อลูกค้า :</b> {selectedBill.username}
-                      </p>
-                    </div>
-                    <div className="col-md-4">
-                      <p>
-                        <b>เบอร์โทร :</b> {selectedBill.phone}
-                      </p>
-                    </div>
-                    <div className="col-md-4">
-                      <p>
-                        <b>วันที่สร้าง :</b>{" "}
-                        {formatDate(selectedBill.created_at)}
-                      </p>
-                    </div>
+                {/* ===== Header ใบเสร็จสไตล์หน้า AddBill ===== */}
+                <div className="text-center mb-3">
+                  <h5 className="fw-bold mb-1">สถานตรวจสภาพรถคลองหาด</h5>
+                  <div>Tel: 083-066-2661, 081-715-8683</div>
+                </div>
+
+                <div className="row g-2 mb-3">
+                  <div className="col-md-4">
+                    <b>เลขที่บิล:</b> {selectedBill.bill_number || "-"}
+                  </div>
+                  <div className="col-md-4">
+                    <b>วันที่:</b>{" "}
+                    {moment(selectedBill.created_at).format("DD/MM/YYYY HH:mm")}
+                  </div>
+                  <div className="col-md-4">
+                    <b>พนักงานออกบิล:</b>{" "}
+                    {selectedBill.user?.user_name ||
+                      selectedBill.created_by ||
+                      "-"}
+                  </div>
+                  <div className="col-md-6">
+                    <b>ลูกค้า:</b> {selectedBill.username || "-"}
+                  </div>
+                  <div className="col-md-6">
+                    <b>โทร:</b> {selectedBill.phone || "-"}
                   </div>
                 </div>
 
-                {/* ข้อมูลการชำระเงิน */}
-                <div className="mb-4">
-                  <h5 className="border-bottom pb-2 text-dark fw-bold">
-                    ข้อมูลการชำระเงิน
-                  </h5>
-                  <div className="row">
-                    <div className="col-md-6">
-                      <p>
-                        <b>วิธีการชำระเงิน :</b>{" "}
-                        {selectedBill.payment_method === "cash"
-                          ? "เงินสด"
-                          : selectedBill.payment_method === "transfer"
-                          ? "โอนเงิน"
-                          : "บัตรเครดิต"}
-                      </p>
+                <hr className="my-3" />
+
+                {/* ===== ฟังก์ชันช่วย ===== */}
+                {/*
+          ใช้ใน JSX ด้านล่างผ่าน IIFE เพื่อไม่ต้องยกออกไปนอก component
+        */}
+                {(() => {
+                  const toNum = (v: any) => {
+                    if (v === null || v === undefined || v === "") return 0;
+                    const n = Number(String(v).replace(/,/g, "").trim());
+                    return Number.isFinite(n) ? n : 0;
+                  };
+                  const money = (n: number) =>
+                    n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+                  const notZero = (v: any) => toNum(v) !== 0;
+
+                  const payTH =
+                    selectedBill.payment_method === "cash"
+                      ? "เงินสด"
+                      : selectedBill.payment_method === "transfer"
+                      ? "โอนเงิน"
+                      : "บัตรเครดิต";
+
+                  return (
+                    <div>
+                      {/* ===== สรุปค่าใช้จ่ายทั้งหมด (เรียงตามหน้า AddBill) ===== */}
+                      <h6 className="fw-bold mb-2">สรุปค่าใช้จ่ายทั้งหมด</h6>
+
+                      {/* รายการพรบ (name1/amount1) */}
+                      {selectedBill.name1 && notZero(selectedBill.amount1) && (
+                        <div className="mb-2">
+                          <div className="fw-bold">รายการพรบ</div>
+                          <div>{selectedBill.name1}</div>
+                          <div>{money(toNum(selectedBill.amount1))}</div>
+                        </div>
+                      )}
+
+                      {/* รายการตรวจสภาพ (check1..4) */}
+                      {([1, 2, 3, 4] as const).some((i) =>
+                        notZero((selectedBill as any)[`check${i}`])
+                      ) && (
+                        <div className="mb-2">
+                          <div className="fw-bold">รายการตรวจสภาพ</div>
+                          {([1, 2, 3, 4] as const).map((i) => {
+                            const reg = (selectedBill as any)[
+                              `car_registration${i}`
+                            ];
+                            const chk = (selectedBill as any)[`check${i}`];
+                            return notZero(chk) ? (
+                              <div key={`check-${i}`}>
+                                <div>{reg || "-"}</div>
+                                <div>{money(toNum(chk))}</div>
+                              </div>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+
+                      {/* ภาษีและฝากต่อ (tax1..4 / taxgo1..4) */}
+                      {([1, 2, 3, 4] as const).some(
+                        (i) =>
+                          notZero((selectedBill as any)[`tax${i}`]) ||
+                          notZero((selectedBill as any)[`taxgo${i}`])
+                      ) && (
+                        <div className="mb-2">
+                          <div className="fw-bold">ภาษีและฝากต่อ</div>
+                          {([1, 2, 3, 4] as const).map((i) => {
+                            const reg = (selectedBill as any)[
+                              `car_registration${i}`
+                            ];
+                            const tax = (selectedBill as any)[`tax${i}`];
+                            const taxgo = (selectedBill as any)[`taxgo${i}`];
+
+                            return notZero(tax) || notZero(taxgo) ? (
+                              <div key={`tax-${i}`} className="mb-1">
+                                {notZero(tax) && (
+                                  <div>
+                                    ค่าภาษีทะเบียน {reg || "-"} <br />
+                                    {money(toNum(tax))}
+                                  </div>
+                                )}
+                                {notZero(taxgo) && (
+                                  <div>
+                                    ค่าฝากต่อ <br />
+                                    {money(toNum(taxgo))}
+                                  </div>
+                                )}
+                              </div>
+                            ) : null;
+                          })}
+                        </div>
+                      )}
+
+                      {/* บริการเสริม (extension1/2, extension3/4) */}
+                      {((selectedBill.extension1 &&
+                        notZero(selectedBill.extension2)) ||
+                        (selectedBill.extension3 &&
+                          notZero(selectedBill.extension4))) && (
+                        <div className="mb-2">
+                          <div className="fw-bold">บริการเสริม</div>
+                          {selectedBill.extension1 &&
+                            notZero(selectedBill.extension2) && (
+                              <div>
+                                บริการ {selectedBill.extension1} <br />
+                                {money(toNum(selectedBill.extension2))}
+                              </div>
+                            )}
+                          {selectedBill.extension3 &&
+                            notZero(selectedBill.extension4) && (
+                              <div>
+                                บริการ {selectedBill.extension3} <br />
+                                {money(toNum(selectedBill.extension4))}
+                              </div>
+                            )}
+                        </div>
+                      )}
+
+                      {/* ประกัน (ใช้ typerefer1 เป็นชื่อแบบในตัวอย่าง และดึงราคาได้จาก extension4 หรือช่องที่คุณเก็บราคา) */}
+                      {(selectedBill.typerefer1 ||
+                        notZero(selectedBill.extension4)) && (
+                        <div className="mb-2">
+                          <div className="fw-bold">ประกัน</div>
+                          {selectedBill.typerefer1 && (
+                            <div>{selectedBill.typerefer1}</div>
+                          )}
+                          {notZero(selectedBill.extension4) && (
+                            <div>{money(toNum(selectedBill.extension4))}</div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* วันที่นัดรับ */}
+                      {selectedBill.date && (
+                        <div className="mb-2">
+                          <div className="fw-bold">วันที่นัดรับ</div>
+                          <div>
+                            {moment(selectedBill.date).format("DD/MM/YYYY")}
+                          </div>
+                        </div>
+                      )}
+
+                      <hr className="my-3" />
+
+                      {/* ยอดรวม & วิธีชำระ */}
+                      <div className="d-flex justify-content-between align-items-center">
+                        <h5 className="fw-bold mb-0">
+                          ยอดรวมทั้งสิ้น: {money(toNum(selectedBill.total))} บาท
+                        </h5>
+                        <div>
+                          <b>ชำระโดย:</b> {payTH}
+                        </div>
+                      </div>
                     </div>
-                    <div className="col-md-6">
-                      <p>
-                        <b>หมายเหตุ :</b> {selectedBill.description || "-"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* รายการบริการ */}
-                <div className="mb-4">
-                  <h5 className="border-bottom pb-2 text-dark fw-bold">
-                    รายการบริการ
-                  </h5>
-                  <Table bordered hover responsive size="sm">
-                    <thead className="table-light text-center">
-                      <tr>
-                        <th>ลำดับ</th>
-                        <th>รายการ</th>
-                        <th>จำนวนเงิน (บาท)</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[1, 2, 3, 4].map(
-                        (i) =>
-                          selectedBill[`name${i}`] && (
-                            <tr key={i}>
-                              <td className="text-center">{i}</td>
-                              <td>{selectedBill[`name${i}`]}</td>
-                              <td className="text-end">
-                                {selectedBill[`amount${i}`]?.toLocaleString()}
-                              </td>
-                            </tr>
-                          )
-                      )}
-                    </tbody>
-                  </Table>
-                </div>
-
-                {/* ข้อมูลรถ */}
-                <div className="mb-4">
-                  <h5 className="border-bottom pb-2 text-dark fw-bold">
-                    ข้อมูลรถ
-                  </h5>
-                  <Table bordered hover responsive size="sm">
-                    <thead className="table-light text-center">
-                      <tr>
-                        <th>ลำดับ</th>
-                        <th>ทะเบียนรถ</th>
-                        <th>ประเภทบริการ</th>
-                        <th>ค่าบริการ</th>
-                        <th>ภาษี/ค่าปรับ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[1, 2, 3, 4].map(
-                        (i) =>
-                          selectedBill[`car_registration${i}`] && (
-                            <tr key={i}>
-                              <td className="text-center">{i}</td>
-                              <td>{selectedBill[`car_registration${i}`]}</td>
-                              <td>
-                                {selectedBill[`check${i}`] === 60
-                                  ? "มอไซค์"
-                                  : selectedBill[`check${i}`] === 200
-                                  ? "รถยนต์"
-                                  : "-"}
-                              </td>
-                              <td className="text-end">
-                                {selectedBill[`check${i}`]?.toLocaleString()}
-                              </td>
-                              <td className="text-end">
-                                {selectedBill[`tax${i}`]?.toLocaleString()}
-                              </td>
-                            </tr>
-                          )
-                      )}
-                    </tbody>
-                  </Table>
-                </div>
-
-                {/* ภาษีและฝากต่อ */}
-                <div className="mb-4">
-                  <h5 className="border-bottom pb-2 text-dark fw-bold">
-                    ภาษีและฝากต่อ
-                  </h5>
-                  <Table bordered hover responsive size="sm">
-                    <thead className="table-light text-center">
-                      <tr>
-                        <th>ลำดับ</th>
-                        <th>ทะเบียนรถ</th>
-                        <th>ค่าภาษีทะเบียน</th>
-                        <th>ค่าฝากต่อ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[1, 2, 3, 4].map(
-                        (i) =>
-                          (selectedBill[`tax${i}`] ||
-                            selectedBill[`taxgo${i}`]) && (
-                            <tr key={i}>
-                              <td className="text-center">{i}</td>
-                              <td>
-                                {selectedBill[`car_registration${i}`] || "-"}
-                              </td>
-                              <td className="text-end">
-                                {selectedBill[`tax${i}`]?.toLocaleString() ||
-                                  "-"}
-                              </td>
-                              <td className="text-end">
-                                {selectedBill[`taxgo${i}`]?.toLocaleString() ||
-                                  "-"}
-                              </td>
-                            </tr>
-                          )
-                      )}
-                    </tbody>
-                  </Table>
-                </div>
-
-                {/* บริการเสริม */}
-                <div className="mb-4">
-                  <h5 className="border-bottom pb-2 text-dark fw-bold">
-                    บริการเสริม
-                  </h5>
-                  <Table bordered hover responsive size="sm">
-                    <thead className="table-light text-center">
-                      <tr>
-                        <th>รายการ</th>
-                        <th>ค่าบริการ</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[1, 3].map(
-                        (i) =>
-                          selectedBill[`extension${i}`] &&
-                          selectedBill[`extension${i + 1}`] && (
-                            <tr key={i}>
-                              <td>{selectedBill[`extension${i}`]}</td>
-                              <td className="text-end">
-                                {selectedBill[
-                                  `extension${i + 1}`
-                                ]?.toLocaleString()}
-                              </td>
-                            </tr>
-                          )
-                      )}
-                    </tbody>
-                  </Table>
-                </div>
-
-                {/* ยอดรวม */}
-                <div className="mb-4 p-3 bg-white border rounded shadow-sm">
-                  <div className="d-flex justify-content-between align-items-center">
-                    <h5 className="fw-bold mb-0">ยอดรวมทั้งหมด:</h5>
-                    <h5 className="fw-bold text-success mb-0">
-                      {selectedBill.total?.toLocaleString()} บาท
-                    </h5>
-                  </div>
-                </div>
-
-                {/* วันที่นัดรับ */}
-                {selectedBill.date && (
-                  <div className="mb-4 p-3 border rounded bg-light">
-                    <div className="d-flex justify-content-between align-items-center">
-                      <h5 className="fw-bold text-danger mb-0">
-                        วันที่นัดรับ:
-                      </h5>
-                      <h5 className="fw-bold text-danger mb-0">
-                        {formatDate(selectedBill.date)}
-                      </h5>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
               </div>
             ) : (
               <p className="text-danger text-center">ไม่พบข้อมูล</p>
@@ -891,18 +861,14 @@ const User: React.FC = () => {
             </Button>
             <Button
               variant="warning"
-              style={{
-                minWidth: "140px",
-                fontWeight: "bold",
-                textAlign: "center",
-              }}
+              style={{ minWidth: 140, fontWeight: "bold", textAlign: "center" }}
               onClick={() => {
                 setTimeout(() => {
-                  navigate("/user/bill-print", {
+                  navigate("/user/bill-print", {  
                     state: { billData: selectedBill },
                   });
                   setShowModal(false);
-                }, 1000);
+                }, 300);
               }}
             >
               พิมพ์บิล

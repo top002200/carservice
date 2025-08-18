@@ -49,7 +49,7 @@ const AddBill = () => {
     extension3: "",
     extension4: null,
 
-    // ข้อมูลอ้างอิง
+    // ข้อมูลอ้างอิง/ประกัน
     refer1: "",
     refer2: "",
     refer3: "",
@@ -87,47 +87,44 @@ const AddBill = () => {
   const [showAllReferences, setShowAllReferences] = useState(false);
   const navigate = useNavigate();
   const [customExtension1, setCustomExtension1] = useState(false);
-const [customExtension3, setCustomExtension3] = useState(false);
+  const [customExtension3, setCustomExtension3] = useState(false);
 
-  // Automatic total calculation
+  // ===== Helper: แปลงเป็นตัวเลขแบบตรง ๆ (ตามที่คุณกำหนด) =====
+  const toNumber = (value: any): number => {
+    if (value === null || value === undefined || value === "") return 0;
+    return Number(value) || 0;
+  };
+
+  // ===== คำนวณ total อัตโนมัติ (ตามสูตรที่ให้มา) =====
   useEffect(() => {
-    const calculateTotal = () => {
-      const toNumber = (value: any): number => {
-        if (value === null || value === undefined || value === "") return 0;
-        return Number(value) || 0;
-      };
+    const total =
+      toNumber(formData.amount1) +
+      toNumber(formData.amount2) +
+      toNumber(formData.amount3) +
+      toNumber(formData.amount4) +
+      toNumber(formData.check1) +
+      toNumber(formData.check2) +
+      toNumber(formData.check3) +
+      toNumber(formData.check4) +
+      toNumber(formData.extension2) +
+      toNumber(formData.extension4) +
+      toNumber(formData.tax1) +
+      toNumber(formData.tax2) +
+      toNumber(formData.tax3) +
+      toNumber(formData.tax4) +
+      toNumber(formData.taxgo1) +
+      toNumber(formData.taxgo2) +
+      toNumber(formData.taxgo3) +
+      toNumber(formData.taxgo4) +
+      toNumber(formData.typerefer1) +
+      toNumber(formData.typerefer2) +
+      toNumber(formData.typerefer3) +
+      toNumber(formData.typerefer4);
 
-      const total =
-        toNumber(formData.amount1) +
-        toNumber(formData.amount2) +
-        toNumber(formData.amount3) +
-        toNumber(formData.amount4) +
-        toNumber(formData.check1) +
-        toNumber(formData.check2) +
-        toNumber(formData.check3) +
-        toNumber(formData.check4) +
-        toNumber(formData.extension2) +
-        toNumber(formData.extension4) +
-        toNumber(formData.tax1) +
-        toNumber(formData.tax2) +
-        toNumber(formData.tax3) +
-        toNumber(formData.tax4) +
-        toNumber(formData.taxgo1) +
-        toNumber(formData.taxgo2) +
-        toNumber(formData.taxgo3) +
-        toNumber(formData.taxgo4) +
-        toNumber(formData.typerefer1) +
-        toNumber(formData.typerefer2) +
-        toNumber(formData.typerefer3) +
-        toNumber(formData.typerefer4);
-
-      setFormData((prev) => ({
-        ...prev,
-        total: parseFloat(total.toFixed(2)),
-      }));
-    };
-
-    calculateTotal();
+    setFormData((prev) => ({
+      ...prev,
+      total: parseFloat(total.toFixed(2)),
+    }));
   }, [
     formData.amount1,
     formData.amount2,
@@ -153,23 +150,24 @@ const [customExtension3, setCustomExtension3] = useState(false);
     formData.typerefer4,
   ]);
 
+  // ===== onChange: บังคับฟิลด์ตัวเลขทั้งหมดเป็น number (รวม typerefer) =====
   const handleInputChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
     const { name, value } = e.target;
+
+    const isNumericField =
+      name.includes("amount") ||
+      name.includes("tax") ||
+      name.includes("check") ||
+      name.includes("taxgo") ||
+      name.includes("typerefer"); // << เพิ่มให้ typerefer เป็น number
+
     setFormData((prev) => ({
       ...prev,
-      [name]:
-        name.includes("amount") ||
-        name.includes("tax") ||
-        name.includes("check") ||
-        name.includes("taxgo")
-          ? value === ""
-            ? null
-            : Number(value)
-          : value,
+      [name]: isNumericField ? (value === "" ? null : Number(value)) : value,
     }));
   };
 
@@ -182,13 +180,8 @@ const [customExtension3, setCustomExtension3] = useState(false);
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate required fields
-    if (
-      !formData.username ||
-      !formData.name1 ||
-      formData.amount1 <= 0 ||
-      !formData.date
-    ) {
+    // Validate
+    if (!formData.username || !formData.name1 || toNumber(formData.amount1) <= 0 || !formData.date) {
       Swal.fire({
         title: "ข้อมูลไม่ครบถ้วน",
         text: "กรุณากรอกชื่อลูกค้า, รายการบริการอย่างน้อย 1 รายการ และวันที่",
@@ -197,40 +190,81 @@ const [customExtension3, setCustomExtension3] = useState(false);
       return;
     }
 
-    // Prepare payload with proper null/0 handling
+    // ล็อกยอดรวมอีกครั้ง (ค่าเดียวกับที่แสดงบนหน้าจอ)
+    const lockedTotal =
+      toNumber(formData.amount1) +
+      toNumber(formData.amount2) +
+      toNumber(formData.amount3) +
+      toNumber(formData.amount4) +
+      toNumber(formData.check1) +
+      toNumber(formData.check2) +
+      toNumber(formData.check3) +
+      toNumber(formData.check4) +
+      toNumber(formData.extension2) +
+      toNumber(formData.extension4) +
+      toNumber(formData.tax1) +
+      toNumber(formData.tax2) +
+      toNumber(formData.tax3) +
+      toNumber(formData.tax4) +
+      toNumber(formData.taxgo1) +
+      toNumber(formData.taxgo2) +
+      toNumber(formData.taxgo3) +
+      toNumber(formData.taxgo4) +
+      toNumber(formData.typerefer1) +
+      toNumber(formData.typerefer2) +
+      toNumber(formData.typerefer3) +
+      toNumber(formData.typerefer4);
+
+    const lockedTotalFixed = Number(lockedTotal.toFixed(2));
+
+    // เตรียม payload ส่งขึ้น backend (บันทึกเวลา + ยอดรวมตามที่แสดง)
+    const nowISO = new Date().toISOString();
+
     const payload = {
       ...formData,
-      amount2: formData.amount2 || 0,
-      amount3: formData.amount3 || 0,
-      amount4: formData.amount4 || 0,
-      tax1: formData.tax1 || 0,
-      tax2: formData.tax2 || 0,
-      tax3: formData.tax3 || 0,
-      tax4: formData.tax4 || 0,
-      taxgo1: formData.taxgo1 || 0,
-      taxgo2: formData.taxgo2 || 0,
-      taxgo3: formData.taxgo3 || 0,
-      taxgo4: formData.taxgo4 || 0,
-      check1: formData.check1 || 0,
-      check2: formData.check2 || 0,
-      check3: formData.check3 || 0,
-      check4: formData.check4 || 0,
-      extension2: formData.extension2 ? Number(formData.extension2) : null,
-      extension4: formData.extension4 ? Number(formData.extension4) : null,
-      date: new Date(formData.date).toISOString(),
+      // normalize ค่าตัวเลข (กัน null)
+      amount1: toNumber(formData.amount1),
+      amount2: toNumber(formData.amount2),
+      amount3: toNumber(formData.amount3),
+      amount4: toNumber(formData.amount4),
+      tax1: toNumber(formData.tax1),
+      tax2: toNumber(formData.tax2),
+      tax3: toNumber(formData.tax3),
+      tax4: toNumber(formData.tax4),
+      taxgo1: toNumber(formData.taxgo1),
+      taxgo2: toNumber(formData.taxgo2),
+      taxgo3: toNumber(formData.taxgo3),
+      taxgo4: toNumber(formData.taxgo4),
+      check1: toNumber(formData.check1),
+      check2: toNumber(formData.check2),
+      check3: toNumber(formData.check3),
+      check4: toNumber(formData.check4),
+      extension2: formData.extension2 !== null ? toNumber(formData.extension2) : null,
+      extension4: formData.extension4 !== null ? toNumber(formData.extension4) : null,
+      // ถ้าต้องการเก็บ typerefer เป็นตัวเลขจริง ๆ ใน DB
+      typerefer1: toNumber(formData.typerefer1) as any,
+      typerefer2: toNumber(formData.typerefer2) as any,
+      typerefer3: toNumber(formData.typerefer3) as any,
+      typerefer4: toNumber(formData.typerefer4) as any,
+
+      total: lockedTotalFixed,             // <<<< บันทึกยอดรวมตามที่แสดง
+      date: new Date(formData.date).toISOString(), // วันนัดรับ (ISO)
+      created_at: formData.created_at || nowISO,    // บันทึกเวลา
+      updated_at: nowISO,
     };
 
     try {
       const result = await createBill(payload);
 
       if (result.status) {
-        // Combine both form data and API response data
         const completeBillData = {
-          ...formData, // Keep all form data
-          ...result.data, // Include API response data
-          id: result.data.id, // Ensure we have the ID
-          bill_number: result.data.bill_number, // Include bill number
-          total: formData.total, // Keep calculated total
+          ...formData,
+          ...result.data,
+          id: result.data.id,
+          bill_number: result.data.bill_number,
+          total: lockedTotalFixed, // ให้ตรงกับที่บันทึกไป
+          created_at: payload.created_at,
+          updated_at: payload.updated_at,
         };
 
         Swal.fire({
@@ -239,9 +273,7 @@ const [customExtension3, setCustomExtension3] = useState(false);
           icon: "success",
         }).then(() => {
           navigate("/user/bill-print", {
-            state: {
-              billData: completeBillData,
-            },
+            state: { billData: completeBillData },
           });
         });
       } else {
@@ -256,8 +288,8 @@ const [customExtension3, setCustomExtension3] = useState(false);
       Swal.fire({
         title: "ผิดพลาด!",
         text:
-          error.response?.data?.message ||
-          error.message ||
+          error?.response?.data?.message ||
+          error?.message ||
           "เกิดข้อผิดพลาดในการสร้างบิล",
         icon: "error",
       });
@@ -266,27 +298,21 @@ const [customExtension3, setCustomExtension3] = useState(false);
 
   return (
     <div
-  style={{
-    backgroundColor: "#f8f9fa",
-    minHeight: "100vh",
-    padding: "20px",               // เพิ่มระยะห่างรอบกรอบ
-    border: "2px solid black",     // ✅ เพิ่มกรอบสีดำ
-    borderRadius: "12px",          // ✅ มุมโค้งเล็กน้อย
-    margin: "10px",                // ✅ ขอบรอบนอกกรอบ
-    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)", // ✅ เพิ่มเงานิดหน่อยให้ดูนุ่มขึ้น
-  }}
->
-
-    
-
-        <main className="main-wrapper mx-auto" style={{ paddingTop: "00px" }}>
-        <form
-          onSubmit={handleSubmit}
-          className="p-3 bg-white rounded shadow-sm"
-        >
+      style={{
+        backgroundColor: "#f8f9fa",
+        minHeight: "100vh",
+        padding: "20px",
+        border: "2px solid black",
+        borderRadius: "12px",
+        margin: "10px",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+      }}
+    >
+      <main className="main-wrapper mx-auto" style={{ paddingTop: "00px" }}>
+        <form onSubmit={handleSubmit} className="p-3 bg-white rounded shadow-sm">
           <h2 className="text-center mb-2 text-purple">แบบฟอร์มออกบิลบริการ</h2>
 
-          {/* 1. ชื่อลูกค้าและเบอร์โทร */}
+          {/* 1. ข้อมูลลูกค้า */}
           <div className="card mb-1">
             <div className="card-header bg-purple text-black">
               <h5 className="mb-0">1. ข้อมูลลูกค้า</h5>
@@ -318,7 +344,7 @@ const [customExtension3, setCustomExtension3] = useState(false);
             </div>
           </div>
 
-          {/* 2. รายการบริการและจำนวนเงิน */}
+          {/* 2. รายการบริการ */}
           <div className="card mb-1">
             <div className="card-header bg-purple text-black d-flex justify-content-between align-items-center">
               <h5 className="mb-0">2. รายการบริการ</h5>
@@ -371,7 +397,7 @@ const [customExtension3, setCustomExtension3] = useState(false);
                             value={
                               (formData[
                                 `amount${item}` as keyof BillData
-                              ] as number) || ""
+                              ] as number) ?? ""
                             }
                             onChange={handleInputChange}
                             placeholder="0.00"
@@ -388,7 +414,7 @@ const [customExtension3, setCustomExtension3] = useState(false);
             </div>
           </div>
 
-          {/* 3. ทะเบียนรถ, ประเภทบริการ, ค่าบริการ, ภาษี */}
+          {/* 3. ข้อมูลรถและค่าบริการ */}
           <div className="card mb-1">
             <div className="card-header bg-purple text-black d-flex justify-content-between align-items-center">
               <h5 className="mb-0">3. ข้อมูลรถและค่าบริการ</h5>
@@ -455,7 +481,7 @@ const [customExtension3, setCustomExtension3] = useState(false);
                             value={
                               (formData[
                                 `check${item}` as keyof BillData
-                              ] as number) || ""
+                              ] as number) ?? ""
                             }
                             onChange={handleInputChange}
                             placeholder="ค่าบริการ"
@@ -470,7 +496,7 @@ const [customExtension3, setCustomExtension3] = useState(false);
                             value={
                               (formData[
                                 `tax${item}` as keyof BillData
-                              ] as number) || ""
+                              ] as number) ?? ""
                             }
                             onChange={handleInputChange}
                             placeholder="ภาษี"
@@ -485,7 +511,7 @@ const [customExtension3, setCustomExtension3] = useState(false);
                             value={
                               (formData[
                                 `taxgo${item}` as keyof BillData
-                              ] as number) || ""
+                              ] as number) ?? ""
                             }
                             onChange={handleInputChange}
                             placeholder="ค่าฝากต่อ"
@@ -500,128 +526,129 @@ const [customExtension3, setCustomExtension3] = useState(false);
             </div>
           </div>
 
-        {/* 4. บริการเสริม */}
-<div className="card mb-1">
-  <div className="card-header bg-purple text-black">
-    <h5 className="mb-0">4. บริการเสริม</h5>
-  </div>
-  <div className="card-body">
-    <div className="row">
-      {/* Extension 1 + ราคา */}
-      <div className="col-md-6 mb-3">
-        <div className="row">
-          <div className="col-md-8">
-            {customExtension1 ? (
-              <input
-                type="text"
-                className="form-control"
-                name="extension1"
-                placeholder="พิมพ์ชื่อบริการเสริม"
-                value={formData.extension1}
-                onChange={handleInputChange}
-                onBlur={() => {
-                  if (!formData.extension1) setCustomExtension1(false);
-                }}
-              />
-            ) : (
-              <select
-                className="form-control"
-                name="extension1"
-                value={formData.extension1}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "__custom__") {
-                    setCustomExtension1(true);
-                    formData.extension1 = ""; // ล้างค่าเดิมก่อนให้กรอกใหม่
-                  } else {
-                    handleInputChange(e);
-                  }
-                }}
-              >
-                <option value="">-- เลือกบริการเสริม --</option>
-                <option value="N1">N1</option>
-                <option value="N2">N2</option>
-                <option value="N3">N3</option>
-                <option value="N4">N4</option>
-                <option value="กระจก">กระจก</option>
-                <option value="บังโซ่">บังโซ่</option>
-                <option value="__custom__">เพิ่มเติม...</option>
-              </select>
-            )}
-          </div>
-          <div className="col-md-4">
-            <input
-              type="number"
-              className="form-control"
-              name="extension2"
-              value={formData.extension2 ?? undefined}
-              onChange={handleInputChange}
-              placeholder="ราคา"
-              min="0"
-            />
-          </div>
-        </div>
-      </div>
+          {/* 4. บริการเสริม */}
+          <div className="card mb-1">
+            <div className="card-header bg-purple text-black">
+              <h5 className="mb-0">4. บริการเสริม</h5>
+            </div>
+            <div className="card-body">
+              <div className="row">
+                {/* Extension 1 + ราคา */}
+                <div className="col-md-6 mb-3">
+                  <div className="row">
+                    <div className="col-md-8">
+                      {customExtension1 ? (
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="extension1"
+                          placeholder="พิมพ์ชื่อบริการเสริม"
+                          value={formData.extension1}
+                          onChange={handleInputChange}
+                          onBlur={() => {
+                            if (!formData.extension1) setCustomExtension1(false);
+                          }}
+                        />
+                      ) : (
+                        <select
+                          className="form-control"
+                          name="extension1"
+                          value={formData.extension1}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "__custom__") {
+                              setCustomExtension1(true);
+                              formData.extension1 = "";
+                            } else {
+                              handleInputChange(e);
+                            }
+                          }}
+                        >
+                          <option value="">-- เลือกบริการเสริม --</option>
+                          <option value="N1">N1</option>
+                          <option value="N2">N2</option>
+                          <option value="N3">N3</option>
+                          <option value="N4">N4</option>
+                          <option value="กระจก">กระจก</option>
+                          <option value="บังโซ่">บังโซ่</option>
+                          <option value="__custom__">เพิ่มเติม...</option>
+                        </select>
+                      )}
+                    </div>
+                    <div className="col-md-4">
+                      <input
+                        type="number"
+                        className="form-control"
+                        name="extension2"
+                        value={formData.extension2 ?? undefined}
+                        onChange={handleInputChange}
+                        placeholder="ราคา"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                </div>
 
-      {/* Extension 3 + ราคา */}
-      <div className="col-md-6 mb-3">
-        <div className="row">
-          <div className="col-md-8">
-            {customExtension3 ? (
-              <input
-                type="text"
-                className="form-control"
-                name="extension3"
-                placeholder="พิมพ์ชื่อบริการเสริม"
-                value={formData.extension3}
-                onChange={handleInputChange}
-                onBlur={() => {
-                  if (!formData.extension3) setCustomExtension3(false);
-                }}
-              />
-            ) : (
-              <select
-                className="form-control"
-                name="extension3"
-                value={formData.extension3}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "__custom__") {
-                    setCustomExtension3(true);
-                    formData.extension3 = "";
-                  } else {
-                    handleInputChange(e);
-                  }
-                }}
-              >
-                <option value="">-- เลือกบริการเสริม --</option>
-                <option value="N1">N1</option>
-                <option value="N2">N2</option>
-                <option value="N3">N3</option>
-                <option value="N4">N4</option>
-                <option value="กระจก">กระจก</option>
-                <option value="บังโซ่">บังโซ่</option>
-                <option value="__custom__">เพิ่มเติม...</option>
-              </select>
-            )}
+                {/* Extension 3 + ราคา */}
+                <div className="col-md-6 mb-3">
+                  <div className="row">
+                    <div className="col-md-8">
+                      {customExtension3 ? (
+                        <input
+                          type="text"
+                          className="form-control"
+                          name="extension3"
+                          placeholder="พิมพ์ชื่อบริการเสริม"
+                          value={formData.extension3}
+                          onChange={handleInputChange}
+                          onBlur={() => {
+                            if (!formData.extension3) setCustomExtension3(false);
+                          }}
+                        />
+                      ) : (
+                        <select
+                          className="form-control"
+                          name="extension3"
+                          value={formData.extension3}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "__custom__") {
+                              setCustomExtension3(true);
+                              formData.extension3 = "";
+                            } else {
+                              handleInputChange(e);
+                            }
+                          }}
+                        >
+                          <option value="">-- เลือกบริการเสริม --</option>
+                          <option value="N1">N1</option>
+                          <option value="N2">N2</option>
+                          <option value="N3">N3</option>
+                          <option value="N4">N4</option>
+                          <option value="กระจก">กระจก</option>
+                          <option value="บังโซ่">บังโซ่</option>
+                          <option value="__custom__">เพิ่มเติม...</option>
+                        </select>
+                      )}
+                    </div>
+                    <div className="col-md-4">
+                      <input
+                        type="number"
+                        className="form-control"
+                        name="extension4"
+                        value={formData.extension4 ?? undefined}
+                        onChange={handleInputChange}
+                        placeholder="ราคา"
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="col-md-4">
-            <input
-              type="number"
-              className="form-control"
-              name="extension4"
-              value={formData.extension4 ?? undefined}
-              onChange={handleInputChange}
-              placeholder="ราคา"
-              min="0"
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-          {/* 5. ข้อมูลอ้างอิง */}
+
+          {/* 5. ข้อมูลอ้างอิง/ประกัน */}
           <div className="card mb-1">
             <div className="card-header bg-purple text-black d-flex justify-content-between align-items-center">
               <h5 className="mb-0">5. ข้อมูลอ้างอิง</h5>
@@ -660,16 +687,18 @@ const [customExtension3, setCustomExtension3] = useState(false);
                   <div className="col-md-4">
                     <label className="form-label">ยอดเงิน {item}</label>
                     <input
-                      type="text"
+                      type="number"
                       className="form-control"
                       name={`typerefer${item}`}
                       value={
                         (formData[
                           `typerefer${item}` as keyof BillData
-                        ] as string) || ""
+                        ] as any) ?? ""
                       }
                       onChange={handleInputChange}
                       placeholder={`จำนวนเงิน ${item}`}
+                      min="0"
+                      step="0.01"
                     />
                   </div>
                 </div>
@@ -796,7 +825,7 @@ const [customExtension3, setCustomExtension3] = useState(false);
             </div>
           </div>
 
-          {/* ยอดรวมทั้งหมด */}
+          {/* ยอดรวมทั้งหมด (แสดง = ค่าที่จะบันทึก) */}
           <div className="card mb-1">
             <div className="card-body">
               <div className="row">
