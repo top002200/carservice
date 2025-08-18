@@ -20,65 +20,70 @@ func main() {
 	// ใช้ CORS middleware
 	r.Use(CORSMiddleware())
 
+	// ✅ endpoint โหลดไฟล์ฐานข้อมูล (debug เท่านั้น!)
+	// ใช้ token ใน query string เช่น /download-db?token=secret123
+	r.GET("/download-db", func(c *gin.Context) {
+		token := c.Query("token")
+		// ป้องกันไม่ให้ใครโหลด DB ได้ง่าย ๆ
+		if token != "secret123" {
+			c.JSON(401, gin.H{"error": "unauthorized"})
+			return
+		}
+		c.File("test.db")
+	})
+
 	// Public routes
 	publicRoutes := r.Group("/")
 	{
 		publicRoutes.POST("/login", controllers.Login)
-		// publicRoutes.POST("/signup", controllers.Signup) // หากต้องการเพิ่ม signup
 	}
 
-	// Protected routes (Routes ที่ต้องการการยืนยันตัวตน)
+	// Protected routes (ต้องมี AuthMiddleware)
 	protectedRoutes := r.Group("/")
 	protectedRoutes.Use(middlewares.AuthMiddleware())
 	{
-		// Routes สำหรับ Admin
+		// Admin routes
 		protectedRoutes.POST("/admin", controllers.CreateAdmin)
 		protectedRoutes.GET("/admin/:id", controllers.GetAdminByID)
 		protectedRoutes.GET("/admins", controllers.GetAllAdmins)
 		protectedRoutes.PUT("/admin/:id", controllers.UpdateAdmin)
 		protectedRoutes.DELETE("/admin/:id", controllers.DeleteAdmin)
 
-		// Routes สำหรับ User
+		// User routes
 		protectedRoutes.POST("/user", controllers.CreateUser)
 		protectedRoutes.GET("/user/:id", controllers.GetUserByID)
 		protectedRoutes.GET("/users", controllers.GetAllUsers)
 		protectedRoutes.PUT("/user/:id", controllers.UpdateUser)
 		protectedRoutes.DELETE("/user/:id", controllers.DeleteUser)
 
-		// Routes สำหรับ Heading
+		// Heading routes
 		protectedRoutes.POST("/heading", controllers.CreateHeading)
 		protectedRoutes.GET("/heading/:id", controllers.GetHeadingByID)
 		protectedRoutes.GET("/headings", controllers.GetAllHeadings)
 		protectedRoutes.PUT("/heading/:id", controllers.UpdateHeading)
 		protectedRoutes.DELETE("/heading/:id", controllers.DeleteHeading)
 
-		// Routes สำหรับ Submission
+		// Submission routes
 		protectedRoutes.POST("/submission", controllers.CreateSubmission)
 		protectedRoutes.GET("/submission/:id", controllers.GetSubmissionByID)
 		protectedRoutes.GET("/submissions", controllers.GetAllSubmissions)
 		protectedRoutes.PUT("/submission/:id", controllers.UpdateSubmission)
 		protectedRoutes.DELETE("/submission/:id", controllers.DeleteSubmission)
 
-		// Routes สำหรับ Bill
+		// Bill routes
 		protectedRoutes.POST("/bill", controllers.CreateBill)
 		protectedRoutes.GET("/bill/:bill_id", controllers.GetBillByID)
 		protectedRoutes.GET("/bills", controllers.GetAllBills)
-		protectedRoutes.PUT("/bill/:id", controllers.UpdateBill) // ✅ เพิ่มตรงนี้
+		protectedRoutes.PUT("/bill/:id", controllers.UpdateBill)
 
-		// ✅ Routes สำหรับ ExpenseBill (บิลจ่าย)
+		// ExpenseBill routes
 		protectedRoutes.POST("/expensebill", controllers.CreateExpenseBill)
 		protectedRoutes.GET("/expensebills", controllers.GetAllExpenseBills)
 		protectedRoutes.GET("/expensebill/:id", controllers.GetExpenseBillByID)
 		protectedRoutes.DELETE("/expensebill/:id", controllers.DeleteExpenseBill)
 	}
 
-	// ตรวจสอบพอร์ตที่จะใช้ในการรันเซิร์ฟเวอร์
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "8080"
-	}
-
-	// ✅ เพิ่ม root endpoint สำหรับเช็คสถานะ backend
+	// Root endpoint
 	r.GET("/", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"status":  "success",
@@ -86,17 +91,22 @@ func main() {
 		})
 	})
 
+	// ตรวจสอบพอร์ต
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+
 	// รันเซิร์ฟเวอร์
 	r.Run(":" + port)
-
 }
 
-// CORSMiddleware เป็น middleware ที่ใช้สำหรับการตั้งค่า CORS
+// CORSMiddleware สำหรับตั้งค่า CORS
 func CORSMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		allowedOrigins := []string{
 			"http://localhost:5173",
-			"https://carservice-klonghad.netlify.app", // ✅ ใส่โดเมน Netlify ของคุณ
+			"https://carservice-klonghad.netlify.app",
 		}
 
 		origin := c.Request.Header.Get("Origin")

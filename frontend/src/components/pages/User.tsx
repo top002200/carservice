@@ -651,7 +651,7 @@ const User: React.FC = () => {
         >
           <Modal.Header closeButton className="bg-light rounded-top-4">
             <Modal.Title className="text-center w-100 fw-bold text-primary">
-              รายละเอียดบิลเลขที่ {selectedBill?.id}
+              รายละเอียดบิล
             </Modal.Title>
           </Modal.Header>
 
