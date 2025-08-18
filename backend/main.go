@@ -24,14 +24,19 @@ func main() {
 	// ใช้ token ใน query string เช่น /download-db?token=secret123
 	r.GET("/download-db", func(c *gin.Context) {
 		token := c.Query("token")
-		// ป้องกันไม่ให้ใครโหลด DB ได้ง่าย ๆ
 		if token != "secret123" {
 			c.JSON(401, gin.H{"error": "unauthorized"})
 			return
 		}
+
+		// บังคับให้ไฟล์ถูกดาวน์โหลดด้วยชื่อ test.db
+		c.Header("Content-Description", "File Transfer")
+		c.Header("Content-Transfer-Encoding", "binary")
+		c.Header("Content-Disposition", "attachment; filename=test.db")
+		c.Header("Content-Type", "application/octet-stream")
+
 		c.File("test.db")
 	})
-
 	// Public routes
 	publicRoutes := r.Group("/")
 	{
