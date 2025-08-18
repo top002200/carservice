@@ -5,7 +5,7 @@ import {
   faCircleInfo,
   faFilePdf,
   faPlus,
-  faMinus,
+  
 } from "@fortawesome/free-solid-svg-icons";
 import { getAllBills, updateBill } from "../../services/api";
 import Swal from "sweetalert2";
@@ -44,10 +44,10 @@ const User: React.FC = () => {
     end: "",
   });
   const [showAdjustModal, setShowAdjustModal] = useState(false);
-  const [adjustType, setAdjustType] = useState<"เพิ่ม" | "ลด" | null>(null);
+  const [adjustType, ] = useState<"เพิ่ม" | "ลด" | null>(null);
   const [adjustNote, setAdjustNote] = useState("");
   const [adjustAmount, setAdjustAmount] = useState<number | null>(null);
-  const [adjustTargetId, setAdjustTargetId] = useState<number | null>(null);
+  const [adjustTargetId, ] = useState<number | null>(null);
 
   const fetchBills = async () => {
     try {
@@ -70,13 +70,7 @@ const User: React.FC = () => {
     fetchBills();
   }, []);
 
-  const openAdjustmentModal = (billId: number, type: "เพิ่ม" | "ลด") => {
-    setAdjustTargetId(billId);
-    setAdjustType(type);
-    setAdjustNote("");
-    setAdjustAmount(null);
-    setShowAdjustModal(true);
-  };
+  
 
   const filteredData = bills
     .filter((bill) => {

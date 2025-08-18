@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Table, Button, Modal, Pagination, Form } from "react-bootstrap";
+import { Table, Button,  Form } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPrint, faCircleInfo, faPlus, faFilePdf } from "@fortawesome/free-solid-svg-icons";
 import { useNavigate } from "react-router-dom";
@@ -14,8 +14,8 @@ import PdfExpense from "./PdfExpense"; // import PdfExpense
 const ExpenseBillList: React.FC = () => {
   const [expenseBills, setExpenseBills] = useState<ExpenseBillData[]>([]);
   const [filteredBills, setFilteredBills] = useState<ExpenseBillData[]>([]);
-  const [selectedBill, setSelectedBill] = useState<ExpenseBillData | null>(null);
-  const [showModal, setShowModal] = useState(false);
+  const [, setSelectedBill] = useState<ExpenseBillData | null>(null);
+  const [, setShowModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterType, setFilterType] = useState<"today" | "range">("today");
   const [startDate, setStartDate] = useState<string>(moment().format("YYYY-MM-DD"));
@@ -76,7 +76,7 @@ const ExpenseBillList: React.FC = () => {
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentRows = filteredBills.slice(indexOfFirstRow, indexOfLastRow);
-  const totalPages = Math.ceil(filteredBills.length / rowsPerPage);
+
 
   // ดาวน์โหลด PDF จาก PdfExpense
   const handleDownloadPDF = async () => {

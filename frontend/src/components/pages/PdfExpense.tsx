@@ -1,7 +1,5 @@
 import React from "react";
 import { ExpenseBillData } from "../../interface/IExpenseBill";
-import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
 import moment from "moment";
 
 interface Props {
@@ -23,25 +21,7 @@ const PdfExpense: React.FC<Props> = ({ bills }) => {
 
   const totalAmount = bills.reduce((sum, b) => sum + (b.amount || 0), 0);
 
-  const handleDownloadPDF = async () => {
-    const input = document.getElementById("pdf-table");
-    if (!input) return;
-
-    const canvas = await html2canvas(input, { scale: 2 });
-    const imgData = canvas.toDataURL("image/png");
-
-    const pdf = new jsPDF({
-      orientation: "landscape",
-      unit: "px",
-      format: "a4",
-    });
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const imgHeight = (canvas.height * pageWidth) / canvas.width;
-
-    pdf.addImage(imgData, "PNG", 0, 0, pageWidth, imgHeight);
-    pdf.save(`expense_report_${moment().format("YYYYMMDD_HHmm")}.pdf`);
-  };
+  
 
   return (
     <div>
