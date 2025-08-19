@@ -29,14 +29,21 @@ func main() {
 			return
 		}
 
+		// อ่าน path ของ DB จาก Environment (Render ตั้งไว้แล้วเป็น /var/data/test.db)
+		dbPath := os.Getenv("DATABASE_PATH")
+		if dbPath == "" {
+			dbPath = "./test.db" // fallback
+		}
+
 		// บังคับให้ไฟล์ถูกดาวน์โหลดด้วยชื่อ test.db
 		c.Header("Content-Description", "File Transfer")
 		c.Header("Content-Transfer-Encoding", "binary")
 		c.Header("Content-Disposition", "attachment; filename=test.db")
 		c.Header("Content-Type", "application/octet-stream")
 
-		c.File("test.db")
+		c.File(dbPath)
 	})
+
 	// Public routes
 	publicRoutes := r.Group("/")
 	{
