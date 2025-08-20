@@ -249,7 +249,7 @@ const BillPrint = () => {
             <div>เลขที่บิล: {billData.bill_number || "-"}</div>
             <div>
               <div>Tel: 083-066-2661, 081-715-8683</div>
-              วันที่: {formatDate(billData.date)}{" "}
+              วันที่: {formatDate(billData.created_at)}{" "}
               {formatTime(billData.created_at)}
             </div>
           </div>
