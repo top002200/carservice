@@ -394,8 +394,7 @@ const AddBill = () => {
                             onChange={handleInputChange}
                             placeholder="0.00"
                             required={item === 1}
-                            min="0"
-                            step="0.01"
+
                           />
                         </td>
                       </tr>
