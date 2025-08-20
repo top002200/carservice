@@ -66,7 +66,6 @@ const EditPDF: React.FC<Props> = ({
   const renderTable = (bills: Bill[]) => {
     if (!bills.length) return null;
 
-    // ✅ เรียงตามเลขที่บิล (ถ้าเป็นตัวเลขก็แปลง)
     const sortedData = [...bills].sort(
       (a, b) =>
         Number(a.bill_number) - Number(b.bill_number) ||
@@ -78,7 +77,16 @@ const EditPDF: React.FC<Props> = ({
       sortedData.slice(i * rowsPerPage, (i + 1) * rowsPerPage)
     );
 
-    const totalAll = bills.reduce((sum, item) => sum + toNumber(item.total), 0);
+    // คำนวณยอดรวม
+    const totalCash = bills
+      .filter((b) => b.payment_method === "cash")
+      .reduce((sum, b) => sum + toNumber(b.total), 0);
+    const totalTransfer = bills
+      .filter(
+        (b) => b.payment_method === "transfer" || b.payment_method === "credit"
+      )
+      .reduce((sum, b) => sum + toNumber(b.total), 0);
+    const totalAll = bills.reduce((sum, b) => sum + toNumber(b.total), 0);
 
     return pages.map((pageData, pageIndex) => (
       <div
@@ -172,7 +180,6 @@ const EditPDF: React.FC<Props> = ({
                 false
               );
 
-              // ✅ แยกเป็นคอลัมน์ เงินสด กับ โอน
               const isCash = item.payment_method === "cash";
               const isTransfer =
                 item.payment_method === "transfer" ||
@@ -187,9 +194,7 @@ const EditPDF: React.FC<Props> = ({
                     {item.bill_number || item.id}
                   </td>
                   <td style={{ ...cellStyle, ...styleRow }}>
-                    {item.user?.user_name
-                      ? `(${item.user.user_name})`
-                      : `(${item.created_by})`}
+                    {item.user?.user_name || item.created_by}
                   </td>
                   <td style={{ ...cellStyle, ...styleRow }}>
                     {carRegs.length ? carRegs : "-"}
@@ -230,24 +235,20 @@ const EditPDF: React.FC<Props> = ({
 
             {pageIndex === pageCount - 1 && (
               <tr>
-                <td
-                  colSpan={13}
-                  style={{
-                    textAlign: "right",
-                    fontWeight: "bold",
-                    padding: "4px",
-                    borderTop: "2px solid black",
-                  }}
-                >
-                  รวมทั้งหมด
-                </td>
-                <td
-                  style={{
-                    ...rightAlignStyle,
-                    borderTop: "2px solid black",
-                  }}
-                >
-                  {formatNumber(totalAll)}
+                <td colSpan={14} style={{ padding: 0, border: "none" }}>
+                  <div
+                    style={{
+                      width: "100%",
+                      textAlign: "right",
+                      fontWeight: "bold",
+                      padding: "8px 4px",
+                      borderTop: "2px solid black",
+                    }}
+                  >
+                    เงินสด: {formatNumber(totalCash)} | โอน:{" "}
+                    {formatNumber(totalTransfer)} | รวม:{" "}
+                    {formatNumber(totalAll)}
+                  </div>
                 </td>
               </tr>
             )}
