@@ -101,7 +101,7 @@ const ExpenseBillList: React.FC = () => {
   return (
     <div className="container mt-4" style={{ border: "2px solid black", borderRadius: "12px", padding: "20px", backgroundColor: "white" }}>
       <h4 style={{ color: "#000", fontWeight: "bold", textAlign: "center", marginBottom: "20px" }}>
-        ตารางบิลจ่าย
+        ตารางบิลรับ-จ่าย
       </h4>
 
       <div className="d-flex justify-content-between align-items-center mb-3">
@@ -131,7 +131,7 @@ const ExpenseBillList: React.FC = () => {
 
         <div className="d-flex align-items-center gap-2">
           <Button variant="success" onClick={() => navigate("/user/add-expense")}>
-            <FontAwesomeIcon icon={faPlus} className="me-2" /> เพิ่มบิลจ่าย
+            <FontAwesomeIcon icon={faPlus} className="me-2" /> เพิ่มบิลรับ-จ่าย
           </Button>
           <Button variant="danger" onClick={handleDownloadPDF}>
             <FontAwesomeIcon icon={faFilePdf} className="me-2" /> ดาวน์โหลด PDF

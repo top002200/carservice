@@ -71,22 +71,28 @@ const BillPrint = () => {
   };
 
   // Function to render inspection items (car reg + check)
+  // Function to render inspection items (car reg + check)
   const renderInspectionItems = () => {
     const items = [];
     for (let i = 1; i <= 4; i++) {
       const carReg = billData[
         `car_registration${i}` as keyof BillData
       ] as string;
-      const check = billData[`check${i}` as keyof BillData] as number;
+      const check = billData[`check${i}` as keyof BillData] as number | null;
 
-      if (carReg && check) {
+      // ✅ แสดงทะเบียนเสมอถ้ามีค่า carReg
+      if (carReg) {
         items.push(
           <div
             key={`inspection-${i}`}
             className="d-flex justify-content-between"
           >
             <span>{carReg}</span>
-            <span>{formatCurrency(check)}</span>
+            <span>
+              {check !== null && check !== undefined
+                ? formatCurrency(check)
+                : "0.00"}
+            </span>
           </div>
         );
       }
@@ -265,6 +271,24 @@ const BillPrint = () => {
           <div>
             <strong>โทร:</strong> {billData.phone || "-"}
           </div>
+
+          {/* ✅ แสดงทะเบียนถ้ามีค่า */}
+          {(billData.car_registration1 ||
+            billData.car_registration2 ||
+            billData.car_registration3 ||
+            billData.car_registration4) && (
+            <div>
+              <strong>ทะเบียน:</strong>{" "}
+              {[
+                billData.car_registration1,
+                billData.car_registration2,
+                billData.car_registration3,
+                billData.car_registration4,
+              ]
+                .filter((reg) => reg && reg.trim() !== "")
+                .join(", ")}
+            </div>
+          )}
         </div>
 
         <hr style={{ borderColor: "#74045f", margin: "5px 0" }} />

@@ -93,7 +93,7 @@ const ExpenseBillAdd = () => {
           className="bg-white rounded shadow-sm p-4"
           onSubmit={handleSubmit}
         >
-          <h3 className="text-center text-purple mb-4">ฟอร์มบันทึกบิลจ่าย</h3>
+          <h3 className="text-center text-purple mb-4">ฟอร์มบันทึกบิลรับ-จ่าย</h3>
 
           {/* ชื่อหัวข้อ */}
           <div className="mb-3">
@@ -158,7 +158,7 @@ const ExpenseBillAdd = () => {
               ยกเลิก
             </button>
             <button type="submit" className="btn btn-success">
-              บันทึกบิลจ่าย
+              บันทึกบิลรับ-จ่าย
             </button>
           </div>
         </form>
