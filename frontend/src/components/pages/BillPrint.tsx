@@ -101,32 +101,33 @@ const BillPrint = () => {
   };
 
   // Function to render tax items
+  // Function to render tax items (แสดงแม้ไม่มีทะเบียน ถ้ามีตัวเลข > 0)
   const renderTaxItems = () => {
     const items = [];
     for (let i = 1; i <= 4; i++) {
       const carReg = billData[
         `car_registration${i}` as keyof BillData
       ] as string;
-      const tax = billData[`tax${i}` as keyof BillData] as number;
-      const taxgo = billData[`taxgo${i}` as keyof BillData] as number;
+      const tax = billData[`tax${i}` as keyof BillData] as number | null;
+      const taxgo = billData[`taxgo${i}` as keyof BillData] as number | null;
 
-      if (carReg && (tax || taxgo)) {
-        if (tax) {
-          items.push(
-            <div key={`tax-${i}`} className="d-flex justify-content-between">
-              <span>ค่าภาษีทะเบียน {carReg}</span>
-              <span>{formatCurrency(tax)}</span>
-            </div>
-          );
-        }
-        if (taxgo) {
-          items.push(
-            <div key={`taxgo-${i}`} className="d-flex justify-content-between">
-              <span>ค่าฝากต่อ {} </span>
-              <span>{formatCurrency(taxgo)}</span>
-            </div>
-          );
-        }
+      // ✅ แสดงเฉพาะค่าที่มากกว่า 0
+      if (tax !== null && tax !== undefined && tax > 0) {
+        items.push(
+          <div key={`tax-${i}`} className="d-flex justify-content-between">
+            <span>ค่าภาษีทะเบียน{carReg ? ` ${carReg}` : ""}</span>
+            <span>{formatCurrency(tax)}</span>
+          </div>
+        );
+      }
+
+      if (taxgo !== null && taxgo !== undefined && taxgo > 0) {
+        items.push(
+          <div key={`taxgo-${i}`} className="d-flex justify-content-between">
+            <span>ค่าฝากต่อ{carReg ? ` ${carReg}` : ""}</span>
+            <span>{formatCurrency(taxgo)}</span>
+          </div>
+        );
       }
     }
     return items.length > 0 ? items : <div>-</div>;
