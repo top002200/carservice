@@ -84,9 +84,10 @@ func main() {
 
 		// Bill routes
 		protectedRoutes.POST("/bill", controllers.CreateBill)
-		protectedRoutes.GET("/bill/:bill_id", controllers.GetBillByID)
+		protectedRoutes.GET("/bill/:id", controllers.GetBillByID) // ✅ ให้ตรงกับ c.Param("id")
 		protectedRoutes.GET("/bills", controllers.GetAllBills)
 		protectedRoutes.PUT("/bill/:id", controllers.UpdateBill)
+		protectedRoutes.DELETE("/bill/:id", controllers.DeleteBill) // ✅ เพิ่มลบ
 
 		// ExpenseBill routes
 		protectedRoutes.POST("/expensebill", controllers.CreateExpenseBill)
