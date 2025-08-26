@@ -6,15 +6,13 @@ interface Bill {
 
 interface Props {
   data: Bill[];
-  selectedMonthName: string;
-  selectedYearText: string;
+  selectedMonthName: string; // ไม่ใช้แล้ว แต่คง prop ไว้เผื่อส่วนอื่นอ้างอิง
+  selectedYearText: string; // ไม่ใช้แล้ว แต่คง prop ไว้เผื่อส่วนอื่นอ้างอิง
   formatDate: (date: string) => string;
 }
 
 const EditPDF: React.FC<Props> = ({
   data,
-  selectedMonthName,
-  selectedYearText,
   formatDate,
 }) => {
   const rowsPerPage = 15;
@@ -66,18 +64,33 @@ const EditPDF: React.FC<Props> = ({
   const renderTable = (bills: Bill[]) => {
     if (!bills.length) return null;
 
+    // --- จัดเรียงข้อมูลก่อน ---
     const sortedData = [...bills].sort(
       (a, b) =>
         Number(a.bill_number) - Number(b.bill_number) ||
         new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
 
+    // --- หาวันแรกและวันสุดท้ายจากชุดข้อมูลที่จัดเรียงแล้ว ---
+    const firstDateRaw = sortedData[0]?.created_at;
+    const lastDateRaw = sortedData[sortedData.length - 1]?.created_at;
+
+    const firstDateText =
+      typeof firstDateRaw === "string" && firstDateRaw
+        ? formatDate(firstDateRaw)
+        : "-";
+    const lastDateText =
+      typeof lastDateRaw === "string" && lastDateRaw
+        ? formatDate(lastDateRaw)
+        : "-";
+
+    // --- จัดหน้า ---
     const pageCount = Math.ceil(sortedData.length / rowsPerPage);
     const pages = Array.from({ length: pageCount }, (_, i) =>
       sortedData.slice(i * rowsPerPage, (i + 1) * rowsPerPage)
     );
 
-    // คำนวณยอดรวม
+    // --- คำนวณยอดรวมทั้งรายงาน ---
     const totalCash = bills
       .filter((b) => b.payment_method === "cash")
       .reduce((sum, b) => sum + toNumber(b.total), 0);
@@ -96,8 +109,9 @@ const EditPDF: React.FC<Props> = ({
           marginBottom: "20px",
         }}
       >
+        {/* หัวข้อรายงาน: แสดงช่วงวันที่เหมือนกันทุกหน้า */}
         <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
-          รายงานข้อมูลบิล: {selectedMonthName} {selectedYearText}
+          รายงานข้อมูลบิล : {firstDateText} - {lastDateText}
         </h2>
 
         <table
@@ -188,13 +202,13 @@ const EditPDF: React.FC<Props> = ({
               return (
                 <tr key={index}>
                   <td style={{ ...cellStyle, ...styleRow }}>
-                    {formatDate(item.created_at)}
+                    {item.created_at ? formatDate(item.created_at) : "-"}
                   </td>
                   <td style={{ ...cellStyle, ...styleRow }}>
                     {item.bill_number || item.id}
                   </td>
                   <td style={{ ...cellStyle, ...styleRow }}>
-                    {item.user?.user_name || item.created_by}
+                    {item.user?.user_name || item.created_by || "-"}
                   </td>
                   <td style={{ ...cellStyle, ...styleRow }}>
                     {carRegs.length ? carRegs : "-"}
@@ -233,6 +247,7 @@ const EditPDF: React.FC<Props> = ({
               );
             })}
 
+            {/* สรุปยอดรวมเฉพาะหน้าสุดท้าย */}
             {pageIndex === pageCount - 1 && (
               <tr>
                 <td colSpan={14} style={{ padding: 0, border: "none" }}>
