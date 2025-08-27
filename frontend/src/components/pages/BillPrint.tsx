@@ -435,52 +435,52 @@ const BillPrint = () => {
       {/* สไตล์พิมพ์ */}
       <style>
         {`
-          @media print {
-            body * {
-              visibility: hidden;
-              margin: 0;
-              padding: 0;
-            }
-            #bill-to-print, #bill-to-print * {
-              visibility: visible;
-            }
+        @media print {
+  body * {
+    visibility: hidden;
+    margin: 0;
+    padding: 0;
+  }
+  #bill-to-print, #bill-to-print * {
+    visibility: visible;
+  }
 
-            /* หัวบิลติดทุกหน้า */
-            #bill-to-print .print-header {
-              position: fixed;
-              top: 0;
-              left: 0;
-              width: 80mm;
-              padding: 5px 6px 0;
-              background: white; /* กันซ้อนพื้นหลัง */
-            }
+  /* หัวบิล */
+  #bill-to-print .print-header {
+    position: relative;   /* ❌ ไม่ต้อง fixed แล้ว */
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    margin-bottom: 4px;   /* ✅ เว้นเล็กน้อยพอ */
+  }
 
-            /* เว้นระยะให้เนื้อหาไม่ชนหัวบิล */
-            #bill-to-print .print-body {
-              padding-top: 140px; /* ปรับตามความสูงจริงของหัวบิล */
-            }
+  #bill-to-print .print-body {
+    padding-top: 0 !important; /* ❌ ตัด padding-top ทิ้ง */
+  }
 
-            #bill-to-print {
-              position: absolute;
-              left: 0;
-              top: 0;
-              width: 80mm;
-              margin: 0;
-              padding: 0;
-              border: none;
-              box-shadow: none;
-              font-size: 14px;
-            }
+  #bill-to-print {
+    position: relative;
+    left: 0;
+    top: 0;
+    width: 80mm;
+    margin: 0 auto;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    font-size: 14px;
+  }
 
-            .no-print {
-              display: none !important;
-            }
+  .no-print {
+    display: none !important;
+  }
 
-            @page {
-              size: 80mm auto;
-              margin: 0;
-            }
-          }
+  @page {
+    size: 80mm auto;
+    margin: 4mm; /* ✅ เว้นนิดเดียวรอบๆ */
+  }
+}
+
         `}
       </style>
     </div>
