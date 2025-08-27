@@ -440,18 +440,20 @@ const BillPrint = () => {
     visibility: visible;
   }
 
-  /* หัวบิล */
-  #bill-to-print .print-header {
-    position: relative;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: white;
-    margin-bottom: 4px; /* เว้นนิดเดียว */
+  /* reset margin/padding container ข้างนอก */
+  .container {
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  #bill-to-print .print-body {
+  /* หัวบิล */
+  #bill-to-print .print-header {
+    margin-top: 0 !important;   /* ✅ บังคับชิดบน */
     padding-top: 0 !important;
+    position: relative;
+    width: 100%;
+    background: white;
+    margin-bottom: 4px;
   }
 
   #bill-to-print {
@@ -462,7 +464,7 @@ const BillPrint = () => {
     border: none;
     box-shadow: none;
     font-size: 14px;
-    line-height: 1.4; /* เพิ่มความชัด */
+    line-height: 1.4;
   }
 
   .no-print {
@@ -470,10 +472,11 @@ const BillPrint = () => {
   }
 
   @page {
-    size: 80mm auto;  /* Thermal 80mm */
-    margin: 0;        /* ไม่มีขอบขาว */
+    size: 80mm auto;
+    margin: 0;
   }
 }
+
 `}
       </style>
     </div>
