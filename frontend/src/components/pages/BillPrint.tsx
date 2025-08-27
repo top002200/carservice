@@ -48,15 +48,6 @@ const BillPrint = () => {
     });
   };
 
-  const formatTime = (dateString: string) => {
-    if (!dateString) return "";
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("th-TH", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
   // ฟังก์ชันช่วย: แปลง Date -> สตริงวันที่ไทย (พ.ศ.)
   const formatDateTH = (date: Date) =>
     date.toLocaleDateString("th-TH", {
@@ -435,40 +426,43 @@ const BillPrint = () => {
       {/* สไตล์พิมพ์ */}
       <style>
         {`
-        @media print {
+@media print {
+  body, html {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
   body * {
     visibility: hidden;
-    margin: 0;
-    padding: 0;
   }
+
   #bill-to-print, #bill-to-print * {
     visibility: visible;
   }
 
   /* หัวบิล */
   #bill-to-print .print-header {
-    position: relative;   /* ❌ ไม่ต้อง fixed แล้ว */
+    position: relative;
     top: 0;
     left: 0;
     width: 100%;
     background: white;
-    margin-bottom: 4px;   /* ✅ เว้นเล็กน้อยพอ */
+    margin-bottom: 4px; /* เว้นนิดเดียว */
   }
 
   #bill-to-print .print-body {
-    padding-top: 0 !important; /* ❌ ตัด padding-top ทิ้ง */
+    padding-top: 0 !important;
   }
 
   #bill-to-print {
     position: relative;
-    left: 0;
-    top: 0;
     width: 80mm;
     margin: 0 auto;
     padding: 0;
     border: none;
     box-shadow: none;
     font-size: 14px;
+    line-height: 1.4; /* เพิ่มความชัด */
   }
 
   .no-print {
@@ -476,12 +470,11 @@ const BillPrint = () => {
   }
 
   @page {
-    size: 80mm auto;
-    margin: 4mm; /* ✅ เว้นนิดเดียวรอบๆ */
+    size: 80mm auto;  /* Thermal 80mm */
+    margin: 0;        /* ไม่มีขอบขาว */
   }
 }
-
-        `}
+`}
       </style>
     </div>
   );
