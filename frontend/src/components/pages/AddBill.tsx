@@ -180,8 +180,6 @@ const AddBill = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-   
-
     // ล็อกยอดรวมอีกครั้ง (ค่าเดียวกับที่แสดงบนหน้าจอ)
     const lockedTotal =
       toNumber(formData.amount1) +
@@ -231,17 +229,19 @@ const AddBill = () => {
       check2: toNumber(formData.check2),
       check3: toNumber(formData.check3),
       check4: toNumber(formData.check4),
-      extension2: formData.extension2 !== null ? toNumber(formData.extension2) : null,
-      extension4: formData.extension4 !== null ? toNumber(formData.extension4) : null,
+      extension2:
+        formData.extension2 !== null ? toNumber(formData.extension2) : null,
+      extension4:
+        formData.extension4 !== null ? toNumber(formData.extension4) : null,
       // ถ้าต้องการเก็บ typerefer เป็นตัวเลขจริง ๆ ใน DB
       typerefer1: toNumber(formData.typerefer1) as any,
       typerefer2: toNumber(formData.typerefer2) as any,
       typerefer3: toNumber(formData.typerefer3) as any,
       typerefer4: toNumber(formData.typerefer4) as any,
 
-      total: lockedTotalFixed,             // <<<< บันทึกยอดรวมตามที่แสดง
+      total: lockedTotalFixed, // <<<< บันทึกยอดรวมตามที่แสดง
       date: new Date(formData.date).toISOString(), // วันนัดรับ (ISO)
-      created_at: formData.created_at || nowISO,    // บันทึกเวลา
+      created_at: formData.created_at || nowISO, // บันทึกเวลา
       updated_at: nowISO,
     };
 
@@ -301,7 +301,10 @@ const AddBill = () => {
       }}
     >
       <main className="main-wrapper mx-auto" style={{ paddingTop: "00px" }}>
-        <form onSubmit={handleSubmit} className="p-3 bg-white rounded shadow-sm">
+        <form
+          onSubmit={handleSubmit}
+          className="p-3 bg-white rounded shadow-sm"
+        >
           <h2 className="text-center mb-2 text-purple">แบบฟอร์มออกบิลบริการ</h2>
 
           {/* 1. ข้อมูลลูกค้า */}
@@ -394,7 +397,6 @@ const AddBill = () => {
                             onChange={handleInputChange}
                             placeholder="0.00"
                             required={item === 1}
-
                           />
                         </td>
                       </tr>
@@ -537,7 +539,8 @@ const AddBill = () => {
                           value={formData.extension1}
                           onChange={handleInputChange}
                           onBlur={() => {
-                            if (!formData.extension1) setCustomExtension1(false);
+                            if (!formData.extension1)
+                              setCustomExtension1(false);
                           }}
                         />
                       ) : (
@@ -593,7 +596,8 @@ const AddBill = () => {
                           value={formData.extension3}
                           onChange={handleInputChange}
                           onBlur={() => {
-                            if (!formData.extension3) setCustomExtension3(false);
+                            if (!formData.extension3)
+                              setCustomExtension3(false);
                           }}
                         />
                       ) : (
@@ -704,6 +708,7 @@ const AddBill = () => {
             </div>
             <div className="card-body">
               <div className="row">
+                {/* เงินสด */}
                 <div className="col-md-4 mb-3">
                   <div className="form-check">
                     <input
@@ -720,6 +725,8 @@ const AddBill = () => {
                     </label>
                   </div>
                 </div>
+
+                {/* โอนเงิน */}
                 <div className="col-md-4 mb-3">
                   <div className="form-check">
                     <input
@@ -736,23 +743,79 @@ const AddBill = () => {
                     </label>
                   </div>
                 </div>
+
+                {/* เงินสด + โอนเงิน */}
                 <div className="col-md-4 mb-3">
                   <div className="form-check">
                     <input
                       className="form-check-input"
                       type="radio"
                       name="payment_method"
-                      id="credit_card"
-                      value="credit_card"
-                      checked={formData.payment_method === "credit_card"}
+                      id="cash+transfer"
+                      value="cash+transfer"
+                      checked={formData.payment_method === "cash+transfer"}
                       onChange={handleInputChange}
                     />
-                    <label className="form-check-label" htmlFor="credit_card">
-                      บัตรเครดิต
+                    <label className="form-check-label" htmlFor="cash+transfer">
+                      เงินสด + โอนเงิน
                     </label>
                   </div>
                 </div>
               </div>
+
+              {/* ถ้าเลือกเงินสด+โอนเงิน ให้แสดง 2 ช่อง */}
+              {formData.payment_method === "cash+transfer" && (
+                <div className="row mt-3">
+                  <div className="col-md-6">
+                    <label htmlFor="cash_transfer1" className="form-label">
+                      เงินสด
+                    </label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      id="cash_transfer1"
+                      value={formData.cash_transfer1 || 0}
+                      min={0}
+                      max={formData.total}
+                      onChange={(e) => {
+                        const cash = Math.min(
+                          parseInt(e.target.value) || 0,
+                          formData.total
+                        );
+                        setFormData((prev) => ({
+                          ...prev,
+                          cash_transfer1: cash,
+                          cash_transfer2: formData.total - cash,
+                        }));
+                      }}
+                    />
+                  </div>
+                  <div className="col-md-6">
+                    <label htmlFor="cash_transfer2" className="form-label">
+                      โอนเงิน
+                    </label>
+                    <input
+                      type="number"
+                      className="form-control"
+                      id="cash_transfer2"
+                      value={formData.cash_transfer2 || 0}
+                      min={0}
+                      max={formData.total}
+                      onChange={(e) => {
+                        const transfer = Math.min(
+                          parseInt(e.target.value) || 0,
+                          formData.total
+                        );
+                        setFormData((prev) => ({
+                          ...prev,
+                          cash_transfer2: transfer,
+                          cash_transfer1: formData.total - transfer,
+                        }));
+                      }}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

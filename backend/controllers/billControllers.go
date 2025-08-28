@@ -40,7 +40,6 @@ func GenerateBillNumber(db *gorm.DB) (string, error) {
 	return fmt.Sprintf("%d/%04d", prefix, seq), nil
 }
 
-// calculateTotal computes the total amount for a bill
 // helper deref
 func f64(p *float64) float64 {
 	if p == nil {
@@ -51,6 +50,7 @@ func f64(p *float64) float64 {
 
 // รวมยอดแบบเดียวกับฟอร์ม AddBill:
 // amount1..4 + check1..4 + extension2/4 + tax1..4 + taxgo1..4 + typerefer1..4
+// หมายเหตุ: ไม่รวม CashTransfer1/2 เพราะเป็นการแบ่งวิธีชำระ ไม่ใช่ยอดรายการ
 func calculateTotal(bill *models.Bill) float64 {
 	total := 0.0
 
@@ -91,7 +91,6 @@ func calculateTotal(bill *models.Bill) float64 {
 	return total
 }
 
-
 // CreateBill creates a new bill
 func CreateBill(c *gin.Context) {
 	var bill models.Bill
@@ -109,7 +108,7 @@ func CreateBill(c *gin.Context) {
 	}
 	bill.CreatedBy = userID // ✅ บันทึกว่าใครเป็นผู้สร้างบิล
 
-	// ✅ รับข้อมูลบิลจาก client
+	// ✅ รับข้อมูลบิลจาก client (รวม cash_transfer1/2 ด้วย)
 	if err := c.ShouldBindJSON(&bill); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status":  "error",
@@ -118,9 +117,6 @@ func CreateBill(c *gin.Context) {
 		})
 		return
 	}
-
-	// ✅ ตรวจสอบ field ที่จำเป็น
-
 
 	// ✅ สร้างหมายเลขบิล
 	billNumber, err := GenerateBillNumber(config.DB)
@@ -133,7 +129,7 @@ func CreateBill(c *gin.Context) {
 	}
 	bill.BillNumber = billNumber
 
-	// ✅ คำนวณยอดรวม
+	// ✅ คำนวณยอดรวม (ไม่รวม cash/transfer)
 	bill.Total = calculateTotal(&bill)
 
 	// ✅ ตั้งเวลา
@@ -163,15 +159,18 @@ func CreateBill(c *gin.Context) {
 		return
 	}
 
-	// ✅ ตอบกลับ
+	// ✅ ตอบกลับ (ใส่ cash_transfer1/2 ด้วย เผื่อฝั่ง UI ต้องใช้)
 	c.JSON(http.StatusCreated, gin.H{
 		"status": "success",
 		"data": gin.H{
-			"bill_number": bill.BillNumber,
-			"created_at":  bill.CreatedAt,
-			"id":          bill.ID,
-			"total":       bill.Total,
-			"created_by":  bill.CreatedBy,
+			"bill_number":    bill.BillNumber,
+			"created_at":     bill.CreatedAt,
+			"id":             bill.ID,
+			"total":          bill.Total,
+			"created_by":     bill.CreatedBy,
+			"payment_method": bill.PaymentMethod,
+			"cash_transfer1": bill.CashTransfer1,
+			"cash_transfer2": bill.CashTransfer2,
 		},
 	})
 }
@@ -378,6 +377,16 @@ func UpdateBill(c *gin.Context) {
 		existingBill.PaymentMethod = updateData.PaymentMethod
 	}
 
+	// ✅ Update cash/transfer amounts (int, ไม่มีทศนิยม)
+	// หมายเหตุ: ด้วยรูปแบบนี้ จะ "อัปเดตเมื่อส่งค่าที่ไม่เป็นศูนย์" เท่านั้น
+	// ถ้าต้องการเซ็ตเป็น 0 ควรทำ endpoint เฉพาะ หรือใช้ payload แบบ pointer สำหรับ update
+	if updateData.CashTransfer1 != 0 {
+		existingBill.CashTransfer1 = updateData.CashTransfer1
+	}
+	if updateData.CashTransfer2 != 0 {
+		existingBill.CashTransfer2 = updateData.CashTransfer2
+	}
+
 	// Update description
 	if updateData.Description != "" {
 		existingBill.Description = updateData.Description
@@ -387,16 +396,14 @@ func UpdateBill(c *gin.Context) {
 	if updateData.AdjustmentType != nil && *updateData.AdjustmentType != "" {
 		existingBill.AdjustmentType = updateData.AdjustmentType
 	}
-
 	if updateData.AdjustmentNote != nil && *updateData.AdjustmentNote != "" {
 		existingBill.AdjustmentNote = updateData.AdjustmentNote
 	}
-
 	if updateData.AdjustmentAmount != nil {
 		existingBill.AdjustmentAmount = updateData.AdjustmentAmount
 	}
 
-	// Recalculate total after all updates
+	// Recalculate total after all updates (ไม่รวม cash/transfer)
 	existingBill.Total = calculateTotal(&existingBill)
 	existingBill.UpdatedAt = time.Now()
 

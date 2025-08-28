@@ -7,12 +7,11 @@ import (
 type Bill struct {
 	ID         uint   `gorm:"primaryKey;autoIncrement" json:"id"`
 	BillNumber string `gorm:"unique;not null" json:"bill_number"`
-	Username   string `json:"username"` // ชื่อลูกค้า
+	Username   string `json:"username"`
 
 	// เชื่อมกับพนักงานที่ออกบิล
-	CreatedBy string `json:"created_by"` // ไม่ใส่ not null
-
-	User User `gorm:"foreignKey:CreatedBy" json:"user"` // ความสัมพันธ์กับ User
+	CreatedBy string `json:"created_by"`
+	User      User   `gorm:"foreignKey:CreatedBy" json:"user"`
 
 	// รายการสินค้า/บริการ
 	Name1   string   `json:"name1"`
@@ -67,6 +66,10 @@ type Bill struct {
 	// วิธีการชำระเงิน
 	PaymentMethod string `json:"payment_method"`
 
+	// ✅ ฟิลด์ใหม่: เก็บจำนวนเงินสด และจำนวนเงินโอน (ไม่มีทศนิยม)
+	CashTransfer1 int `json:"cash_transfer1,omitempty"`
+	CashTransfer2 int `json:"cash_transfer2,omitempty"`
+
 	// วันที่และคำอธิบาย
 	Date        time.Time `gorm:"autoCreateTime" json:"date"`
 	Description string    `json:"description"`
@@ -75,11 +78,10 @@ type Bill struct {
 	Total float64 `json:"total,omitempty"`
 
 	// ✅ ฟิลด์ใหม่ (optional ทั้งหมด)
-	AdjustmentType   *string  `json:"adjustment_type,omitempty"`   // "เพิ่ม" หรือ "ลด"
-	AdjustmentNote   *string  `json:"adjustment_note,omitempty"`   // หมายเหตุ
-	AdjustmentAmount *float64 `json:"adjustment_amount,omitempty"` // จำนวนเงินที่เพิ่ม/ลด
+	AdjustmentType   *string  `json:"adjustment_type,omitempty"`
+	AdjustmentNote   *string  `json:"adjustment_note,omitempty"`
+	AdjustmentAmount *float64 `json:"adjustment_amount,omitempty"`
 
-	// เวลาสร้างและอัปเดต
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 }

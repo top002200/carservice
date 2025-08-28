@@ -62,7 +62,11 @@ export interface BillData {
   car_registration4: string;
 
   // วิธีการชำระเงิน
-  payment_method: 'cash' | 'transfer' | 'credit_card' | string;
+  payment_method: 'cash' | 'transfer' | 'credit_card' | 'cash+transfer' | string;
+
+  // ✅ ฟิลด์ใหม่ (ไม่มีทศนิยม → number)
+  cash_transfer1?: number; // จำนวนเงินสด
+  cash_transfer2?: number; // จำนวนเงินโอน
 
   // ข้อมูลเพิ่มเติม
   description: string;
@@ -79,7 +83,7 @@ export interface BillData {
   // Optional timestamps
   deleted_at?: string | null;
 
-  // ✅ เพิ่มฟิลด์ใหม่ (Optional ทั้งหมด)
+  // ✅ ฟิลด์ปรับยอด
   adjustment_type?: "เพิ่ม" | "ลด";
   adjustment_note?: string;
   adjustment_amount?: number;

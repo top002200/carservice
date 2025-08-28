@@ -11,10 +11,7 @@ interface Props {
   formatDate: (date: string) => string;
 }
 
-const EditPDF: React.FC<Props> = ({
-  data,
-  formatDate,
-}) => {
+const EditPDF: React.FC<Props> = ({ data, formatDate }) => {
   const rowsPerPage = 15;
 
   const toNumber = (v: any): number => {
@@ -61,6 +58,23 @@ const EditPDF: React.FC<Props> = ({
         </div>
       ));
 
+  // ---- แยกยอดเงินสด/โอน ต่อบิล (สำหรับสรุปท้ายรายงาน) ----
+  const getCashAmount = (b: Bill) => {
+    const pm = String(b.payment_method || "").toLowerCase();
+    if (pm === "cash+transfer") return toNumber(b.cash_transfer1);
+    if (pm === "cash") return toNumber(b.total);
+    return 0;
+  };
+
+  const getTransferAmount = (b: Bill) => {
+    const pm = String(b.payment_method || "").toLowerCase();
+    if (pm === "cash+transfer") return toNumber(b.cash_transfer2);
+    if (pm === "transfer" || pm === "credit" || pm === "credit_card") {
+      return toNumber(b.total);
+    }
+    return 0;
+  };
+
   const renderTable = (bills: Bill[]) => {
     if (!bills.length) return null;
 
@@ -90,15 +104,12 @@ const EditPDF: React.FC<Props> = ({
       sortedData.slice(i * rowsPerPage, (i + 1) * rowsPerPage)
     );
 
-    // --- คำนวณยอดรวมทั้งรายงาน ---
-    const totalCash = bills
-      .filter((b) => b.payment_method === "cash")
-      .reduce((sum, b) => sum + toNumber(b.total), 0);
-    const totalTransfer = bills
-      .filter(
-        (b) => b.payment_method === "transfer" || b.payment_method === "credit"
-      )
-      .reduce((sum, b) => sum + toNumber(b.total), 0);
+    // --- คำนวณยอดรวมทั้งรายงาน (อัปเดตให้รองรับเงินสด+โอน) ---
+    const totalCash = bills.reduce((sum, b) => sum + getCashAmount(b), 0);
+    const totalTransfer = bills.reduce(
+      (sum, b) => sum + getTransferAmount(b),
+      0
+    );
     const totalAll = bills.reduce((sum, b) => sum + toNumber(b.total), 0);
 
     return pages.map((pageData, pageIndex) => (
@@ -194,10 +205,24 @@ const EditPDF: React.FC<Props> = ({
                 false
               );
 
-              const isCash = item.payment_method === "cash";
-              const isTransfer =
-                item.payment_method === "transfer" ||
-                item.payment_method === "credit";
+              // --- แสดงค่าตามวิธีชำระ ---
+              const pm = String(item.payment_method || "").toLowerCase();
+              const isCashOnly = pm === "cash";
+              const isTransferOnly =
+                pm === "transfer" || pm === "credit" || pm === "credit_card";
+              const isSplit = pm === "cash+transfer";
+
+              const cashDisplay = isSplit
+                ? toNumber(item.cash_transfer1).toLocaleString()
+                : isCashOnly
+                ? "เงินสด"
+                : "-";
+
+              const transferDisplay = isSplit
+                ? toNumber(item.cash_transfer2).toLocaleString()
+                : isTransferOnly
+                ? "โอน"
+                : "-";
 
               return (
                 <tr key={index}>
@@ -234,11 +259,9 @@ const EditPDF: React.FC<Props> = ({
                   <td style={{ ...cellStyle, ...styleRow }}>
                     {typeRefers.length ? typeRefers : "-"}
                   </td>
+                  <td style={{ ...cellStyle, ...styleRow }}>{cashDisplay}</td>
                   <td style={{ ...cellStyle, ...styleRow }}>
-                    {isCash ? "เงินสด" : "-"}
-                  </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
-                    {isTransfer ? "โอน" : "-"}
+                    {transferDisplay}
                   </td>
                   <td style={{ ...rightAlignStyle, ...styleRow }}>
                     {toNumber(item.total).toLocaleString()}
