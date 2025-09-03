@@ -432,7 +432,7 @@ func DeleteBill(c *gin.Context) {
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "error",
-			"message": "Failed to delete bill",
+			"message": "Failed to delete bills",
 			"error":   result.Error.Error(),
 		})
 		return
