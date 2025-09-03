@@ -5,7 +5,6 @@ import {
   faCircleInfo,
   faFilePdf,
   faPlus,
-  
 } from "@fortawesome/free-solid-svg-icons";
 import { getAllBills, updateBill } from "../../services/api";
 import Swal from "sweetalert2";
@@ -44,10 +43,10 @@ const User: React.FC = () => {
     end: "",
   });
   const [showAdjustModal, setShowAdjustModal] = useState(false);
-  const [adjustType, ] = useState<"เพิ่ม" | "ลด" | null>(null);
+  const [adjustType] = useState<"เพิ่ม" | "ลด" | null>(null);
   const [adjustNote, setAdjustNote] = useState("");
   const [adjustAmount, setAdjustAmount] = useState<number | null>(null);
-  const [adjustTargetId, ] = useState<number | null>(null);
+  const [adjustTargetId] = useState<number | null>(null);
 
   const fetchBills = async () => {
     try {
@@ -69,8 +68,6 @@ const User: React.FC = () => {
   useEffect(() => {
     fetchBills();
   }, []);
-
-  
 
   const filteredData = bills
     .filter((bill) => {
@@ -469,7 +466,6 @@ const User: React.FC = () => {
                     <FontAwesomeIcon icon={faCircleInfo} />
                   </Button>
                 </td>
-
               </tr>
             ))}
           </tbody>
@@ -575,181 +571,242 @@ const User: React.FC = () => {
 
         {/* Detail Modal (ใหม่) */}
         <Modal
-  show={showModal}
-  onHide={closeModal}
-  size="lg"
-  centered
-  dialogClassName="border-0 shadow rounded-4"
-  contentClassName="rounded-4"
->
-  <Modal.Header closeButton className="bg-light rounded-top-4">
-    <Modal.Title className="text-center w-100 fw-bold text-primary">
-      รายละเอียดบิล
-    </Modal.Title>
-  </Modal.Header>
+          show={showModal}
+          onHide={closeModal}
+          size="lg"
+          centered
+          dialogClassName="border-0 shadow rounded-4"
+          contentClassName="rounded-4"
+        >
+          <Modal.Header closeButton className="bg-light rounded-top-4">
+            <Modal.Title className="text-center w-100 fw-bold text-primary">
+              รายละเอียดบิล
+            </Modal.Title>
+          </Modal.Header>
 
-  <Modal.Body
-    style={{
-      maxHeight: "70vh",
-      overflowY: "auto",
-      padding: "24px",
-      backgroundColor: "#fdfdfd",
-      fontFamily: "THSarabunNew, sans-serif",
-      fontSize: 16,
-    }}
-  >
-    {selectedBill ? (
-      <div className="container">
-        {/* ===== Header ใบเสร็จ ===== */}
-        <div className="text-center mb-3">
-          <h5 className="fw-bold mb-1">สถานตรวจสภาพรถคลองหาด</h5>
-          <div>Tel: 083-066-2661, 081-715-8683</div>
-        </div>
-
-        <div className="row g-2 mb-3">
-          <div className="col-md-4"><b>เลขที่บิล:</b> {selectedBill.bill_number || "-"}</div>
-          <div className="col-md-4"><b>วันที่:</b> {moment(selectedBill.created_at).format("DD/MM/YYYY HH:mm")}</div>
-          <div className="col-md-4"><b>พนักงานออกบิล:</b> {selectedBill.user?.user_name || selectedBill.created_by || "-"}</div>
-          <div className="col-md-6"><b>ลูกค้า:</b> {selectedBill.username || "-"}</div>
-          <div className="col-md-6"><b>โทร:</b> {selectedBill.phone || "-"}</div>
-        </div>
-
-        <hr className="my-3" />
-
-        {/* ===== สรุปค่าใช้จ่ายทั้งหมด ===== */}
-        {(() => {
-          const toNum = (v: any) => {
-            if (v === null || v === undefined || v === "") return 0;
-            const n = Number(String(v).replace(/,/g, "").trim());
-            return Number.isFinite(n) ? n : 0;
-          };
-          const money = (n: number) =>
-            n.toLocaleString(undefined, { minimumFractionDigits: 2 });
-          const notZero = (v: any) => toNum(v) !== 0;
-
-          const payTH =
-            selectedBill.payment_method === "cash"
-              ? "เงินสด"
-              : selectedBill.payment_method === "transfer"
-              ? "โอนเงิน"
-              : "บัตรเครดิต";
-
-          const renderItem = (label: string, name: string, amount: number | null) =>
-            notZero(amount) ? (
-              <div
-                className="d-flex justify-content-between align-items-center p-2 mb-2 border rounded-3"
-                key={name}
-                style={{ backgroundColor: "#f9f9f9" }}
-              >
-                <div><b>{label}</b>: {name}</div>
-                <div>{money(toNum(amount))} บาท</div>
-              </div>
-            ) : null;
-
-          return (
-            <div>
-              <h6 className="fw-bold mb-3">สรุปค่าใช้จ่ายทั้งหมด</h6>
-
-              {/* รายการพรบ */}
-              {renderItem("รายการพรบ", selectedBill.name1, selectedBill.amount1)}
-              {renderItem("รายการพรบ", selectedBill.name2, selectedBill.amount2)}
-              {renderItem("รายการพรบ", selectedBill.name3, selectedBill.amount3)}
-              {renderItem("รายการพรบ", selectedBill.name4, selectedBill.amount4)}
-
-              {/* ตรวจสภาพรถ */}
-              {[1, 2, 3, 4].map((i) => {
-                const reg = (selectedBill as any)[`car_registration${i}`];
-                const chk = (selectedBill as any)[`check${i}`];
-                return notZero(chk) ? (
-                  <div
-                    className="d-flex justify-content-between align-items-center p-2 mb-2 border rounded-3"
-                    key={`check-${i}`}
-                  >
-                    <div><b>ตรวจสภาพ {reg || "-"}</b></div>
-                    <div>{money(toNum(chk))} บาท</div>
-                  </div>
-                ) : null;
-              })}
-
-              {/* ภาษีและฝากต่อ */}
-              {[1, 2, 3, 4].map((i) => {
-                const reg = (selectedBill as any)[`car_registration${i}`];
-                const tax = (selectedBill as any)[`tax${i}`];
-                const taxgo = (selectedBill as any)[`taxgo${i}`];
-                if (!notZero(tax) && !notZero(taxgo)) return null;
-                return (
-                  <div
-                    className="d-flex justify-content-between align-items-center p-2 mb-2 border rounded-3"
-                    key={`tax-${i}`}
-                    style={{ backgroundColor: "#eaf5ff" }}
-                  >
-                    <div>
-                      {notZero(tax) && <div>ค่าภาษี {reg || "-"}: {money(toNum(tax))} บาท</div>}
-                      {notZero(taxgo) && <div>ค่าฝากต่อ: {money(toNum(taxgo))} บาท</div>}
-                    </div>
-                  </div>
-                );
-              })}
-
-              {/* ประกัน / refer */}
-              {[1, 2, 3, 4].map((i) => {
-                const ref = (selectedBill as any)[`refer${i}`];
-                const type = (selectedBill as any)[`typerefer${i}`];
-                if (!ref && !type) return null;
-                return (
-                  <div
-                    className="d-flex justify-content-between align-items-center p-2 mb-2 border rounded-3"
-                    key={`refer-${i}`}
-                    style={{ backgroundColor: "#fff4e5" }}
-                  >
-                    <div>{type || ref}</div>
-                    <div>-</div>
-                  </div>
-                );
-              })}
-
-              {/* รายละเอียดเพิ่มเติม */}
-              {selectedBill.description && (
-                <div className="border rounded-3 p-2 mb-3" style={{ backgroundColor: "#f5f5f5" }}>
-                  <b>รายละเอียดเพิ่มเติม:</b> {selectedBill.description}
+          <Modal.Body
+            style={{
+              maxHeight: "70vh",
+              overflowY: "auto",
+              padding: "24px",
+              backgroundColor: "#fdfdfd",
+              fontFamily: "THSarabunNew, sans-serif",
+              fontSize: 16,
+            }}
+          >
+            {selectedBill ? (
+              <div className="container">
+                {/* ===== Header ใบเสร็จ ===== */}
+                <div className="text-center mb-3">
+                  <h5 className="fw-bold mb-1">สถานตรวจสภาพรถคลองหาด</h5>
+                  <div>Tel: 083-066-2661, 081-715-8683</div>
                 </div>
-              )}
 
-              <hr className="my-3" />
+                <div className="row g-2 mb-3">
+                  <div className="col-md-4">
+                    <b>เลขที่บิล:</b> {selectedBill.bill_number || "-"}
+                  </div>
+                  <div className="col-md-4">
+                    <b>วันที่:</b>{" "}
+                    {moment(selectedBill.created_at).format("DD/MM/YYYY HH:mm")}
+                  </div>
+                  <div className="col-md-4">
+                    <b>พนักงานออกบิล:</b>{" "}
+                    {selectedBill.user?.user_name ||
+                      selectedBill.created_by ||
+                      "-"}
+                  </div>
+                  <div className="col-md-6">
+                    <b>ลูกค้า:</b> {selectedBill.username || "-"}
+                  </div>
+                  <div className="col-md-6">
+                    <b>โทร:</b> {selectedBill.phone || "-"}
+                  </div>
+                </div>
 
-              {/* ยอดรวม & วิธีชำระ */}
-              <div className="d-flex justify-content-between align-items-center p-2 border rounded-3" style={{ backgroundColor: "#dff0d8" }}>
-                <h5 className="fw-bold mb-0">ยอดรวมทั้งสิ้น: {money(toNum(selectedBill.total))} บาท</h5>
-                <div><b>ชำระโดย:</b> {payTH}</div>
+                <hr className="my-3" />
+
+                {/* ===== สรุปค่าใช้จ่ายทั้งหมด ===== */}
+                {(() => {
+                  const toNum = (v: any) => {
+                    if (v === null || v === undefined || v === "") return 0;
+                    const n = Number(String(v).replace(/,/g, "").trim());
+                    return Number.isFinite(n) ? n : 0;
+                  };
+                  const money = (n: number) =>
+                    n.toLocaleString(undefined, { minimumFractionDigits: 2 });
+                  const notZero = (v: any) => toNum(v) !== 0;
+
+                  const payTH =
+                    selectedBill.payment_method === "cash"
+                      ? "เงินสด"
+                      : selectedBill.payment_method === "transfer"
+                      ? "โอนเงิน"
+                      : selectedBill.payment_method === "cash+transfer"
+                      ? "เงินสดและเงินโอน"
+                      : "บัตรเครดิต";
+
+                  const renderItem = (
+                    label: string,
+                    name: string,
+                    amount: number | null
+                  ) =>
+                    notZero(amount) ? (
+                      <div
+                        className="d-flex justify-content-between align-items-center p-2 mb-2 border rounded-3"
+                        key={name}
+                        style={{ backgroundColor: "#f9f9f9" }}
+                      >
+                        <div>
+                          <b>{label}</b>: {name}
+                        </div>
+                        <div>{money(toNum(amount))} บาท</div>
+                      </div>
+                    ) : null;
+
+                  return (
+                    <div>
+                      <h6 className="fw-bold mb-3">สรุปค่าใช้จ่ายทั้งหมด</h6>
+
+                      {/* รายการพรบ */}
+                      {renderItem(
+                        "รายการพรบ",
+                        selectedBill.name1,
+                        selectedBill.amount1
+                      )}
+                      {renderItem(
+                        "รายการพรบ",
+                        selectedBill.name2,
+                        selectedBill.amount2
+                      )}
+                      {renderItem(
+                        "รายการพรบ",
+                        selectedBill.name3,
+                        selectedBill.amount3
+                      )}
+                      {renderItem(
+                        "รายการพรบ",
+                        selectedBill.name4,
+                        selectedBill.amount4
+                      )}
+
+                      {/* ตรวจสภาพรถ */}
+                      {[1, 2, 3, 4].map((i) => {
+                        const reg = (selectedBill as any)[
+                          `car_registration${i}`
+                        ];
+                        const chk = (selectedBill as any)[`check${i}`];
+                        return notZero(chk) ? (
+                          <div
+                            className="d-flex justify-content-between align-items-center p-2 mb-2 border rounded-3"
+                            key={`check-${i}`}
+                          >
+                            <div>
+                              <b>ตรวจสภาพ {reg || "-"}</b>
+                            </div>
+                            <div>{money(toNum(chk))} บาท</div>
+                          </div>
+                        ) : null;
+                      })}
+
+                      {/* ภาษีและฝากต่อ */}
+                      {[1, 2, 3, 4].map((i) => {
+                        const reg = (selectedBill as any)[
+                          `car_registration${i}`
+                        ];
+                        const tax = (selectedBill as any)[`tax${i}`];
+                        const taxgo = (selectedBill as any)[`taxgo${i}`];
+                        if (!notZero(tax) && !notZero(taxgo)) return null;
+                        return (
+                          <div
+                            className="d-flex justify-content-between align-items-center p-2 mb-2 border rounded-3"
+                            key={`tax-${i}`}
+                            style={{ backgroundColor: "#eaf5ff" }}
+                          >
+                            <div>
+                              {notZero(tax) && (
+                                <div>
+                                  ค่าภาษี {reg || "-"}: {money(toNum(tax))} บาท
+                                </div>
+                              )}
+                              {notZero(taxgo) && (
+                                <div>ค่าฝากต่อ: {money(toNum(taxgo))} บาท</div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                      {/* ประกัน / refer */}
+                      {[1, 2, 3, 4].map((i) => {
+                        const ref = (selectedBill as any)[`refer${i}`];
+                        const type = (selectedBill as any)[`typerefer${i}`];
+                        if (!ref && !type) return null;
+                        return (
+                          <div
+                            className="d-flex justify-content-between align-items-center p-2 mb-2 border rounded-3"
+                            key={`refer-${i}`}
+                            style={{ backgroundColor: "#fff4e5" }}
+                          >
+                            <div>{type || ref}</div>
+                            <div>-</div>
+                          </div>
+                        );
+                      })}
+
+                      {/* รายละเอียดเพิ่มเติม */}
+                      {selectedBill.description && (
+                        <div
+                          className="border rounded-3 p-2 mb-3"
+                          style={{ backgroundColor: "#f5f5f5" }}
+                        >
+                          <b>รายละเอียดเพิ่มเติม:</b> {selectedBill.description}
+                        </div>
+                      )}
+
+                      <hr className="my-3" />
+
+                      {/* ยอดรวม & วิธีชำระ */}
+                      <div
+                        className="d-flex justify-content-between align-items-center p-2 border rounded-3"
+                        style={{ backgroundColor: "#dff0d8" }}
+                      >
+                        <h5 className="fw-bold mb-0">
+                          ยอดรวมทั้งสิ้น: {money(toNum(selectedBill.total))} บาท
+                        </h5>
+                        <div>
+                          <b>ชำระโดย:</b> {payTH}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
-            </div>
-          );
-        })()}
-      </div>
-    ) : (
-      <p className="text-danger text-center">ไม่พบข้อมูล</p>
-    )}
-  </Modal.Body>
+            ) : (
+              <p className="text-danger text-center">ไม่พบข้อมูล</p>
+            )}
+          </Modal.Body>
 
-  <Modal.Footer className="bg-light rounded-bottom-4">
-    <Button variant="secondary" onClick={closeModal}>
-      ปิด
-    </Button>
-    <Button
-      variant="warning"
-      style={{ minWidth: 140, fontWeight: "bold", textAlign: "center" }}
-      onClick={() => {
-        setTimeout(() => {
-          navigate("/user/bill-print", { state: { billData: selectedBill } });
-          setShowModal(false);
-        }, 300);
-      }}
-    >
-      พิมพ์บิล
-    </Button>
-  </Modal.Footer>
-</Modal>
-
+          <Modal.Footer className="bg-light rounded-bottom-4">
+            <Button variant="secondary" onClick={closeModal}>
+              ปิด
+            </Button>
+            <Button
+              variant="warning"
+              style={{ minWidth: 140, fontWeight: "bold", textAlign: "center" }}
+              onClick={() => {
+                setTimeout(() => {
+                  navigate("/user/bill-print", {
+                    state: { billData: selectedBill },
+                  });
+                  setShowModal(false);
+                }, 300);
+              }}
+            >
+              พิมพ์บิล
+            </Button>
+          </Modal.Footer>
+        </Modal>
       </div>
     </div>
   );
