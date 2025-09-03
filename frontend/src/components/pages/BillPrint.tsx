@@ -393,13 +393,13 @@ const BillPrint = () => {
             {billData.payment_method === "cash" && "เงินสด"}
             {billData.payment_method === "transfer" && "โอนเงิน"}
             {billData.payment_method === "credit_card" && "บัตรเครดิต"}
-            {billData.payment_method === "credit+transfer" && (
+            {billData.payment_method === "cash+transfer" && (
               <>
                 เงินสดและเงินโอน
-                <div style={{ marginLeft: "20px" }}>
+              
                   <div>เงินสด: {billData.cash_transfer1} บาท</div>
                   <div>เงินโอน: {billData.cash_transfer2} บาท</div>
-                </div>
+       
               </>
             )}
           </div>

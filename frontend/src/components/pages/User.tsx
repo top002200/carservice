@@ -471,21 +471,42 @@ const User: React.FC = () => {
           </tbody>
         </Table>
 
-        {/* Pagination Controls */}
         <Pagination className="justify-content-center">
           <Pagination.Prev
             disabled={currentPage === 1}
             onClick={() => handlePageChange(currentPage - 1)}
           />
-          {[...Array(totalPages).keys()].map((page) => (
-            <Pagination.Item
-              key={page + 1}
-              active={page + 1 === currentPage}
-              onClick={() => handlePageChange(page + 1)}
-            >
-              {page + 1}
-            </Pagination.Item>
-          ))}
+
+          {/* Calculate the range of pages to display */}
+          {Array.from({ length: Math.min(totalPages, 10) }, (_, i) => {
+            let startPage;
+            if (currentPage <= 5) {
+              startPage = 1;
+            } else if (currentPage > totalPages - 5) {
+              startPage = totalPages - 9;
+            } else {
+              startPage = currentPage - 4;
+            }
+
+            // Ensure startPage is not less than 1
+            startPage = Math.max(1, startPage);
+
+            const pageNumber = startPage + i;
+
+            // Don't render if the page number exceeds the total number of pages
+            if (pageNumber > totalPages) return null;
+
+            return (
+              <Pagination.Item
+                key={pageNumber}
+                active={pageNumber === currentPage}
+                onClick={() => handlePageChange(pageNumber)}
+              >
+                {pageNumber}
+              </Pagination.Item>
+            );
+          })}
+
           <Pagination.Next
             disabled={currentPage === totalPages}
             onClick={() => handlePageChange(currentPage + 1)}
