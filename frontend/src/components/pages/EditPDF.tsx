@@ -14,6 +14,27 @@ interface Props {
 const EditPDF: React.FC<Props> = ({ data, formatDate }) => {
   const rowsPerPage = 15;
 
+  // --- ฟังก์ชันสำหรับแสดงวันที่และเวลาดาวน์โหลด ---
+  const getDownloadDateTime = () => {
+    const now = new Date();
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    };
+    const timeOptions: Intl.DateTimeFormatOptions = {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    };
+    const formattedDate = now.toLocaleDateString("th-TH", dateOptions);
+    const formattedTime = now.toLocaleTimeString("th-TH", timeOptions);
+
+    return `วันที่/เวลาดาวน์โหลด: ${formattedDate} เวลา ${formattedTime} น.`;
+  };
+  // ----------------------------------------------------
+
   const toNumber = (v: any): number => {
     if (v === null || v === undefined || v === "") return 0;
     const n = Number(String(v).replace(/,/g, "").trim());
@@ -120,6 +141,16 @@ const EditPDF: React.FC<Props> = ({ data, formatDate }) => {
           marginBottom: "20px",
         }}
       >
+        {/* ส่วนที่เพิ่ม: วันที่และเวลาดาวน์โหลด */}
+        <div
+          style={{
+            textAlign: "right",
+            fontSize: "14px",
+            marginBottom: "10px",
+          }}
+        >
+          {getDownloadDateTime()}
+        </div>
         {/* หัวข้อรายงาน: แสดงช่วงวันที่เหมือนกันทุกหน้า */}
         <h2 style={{ textAlign: "center", marginBottom: "20px" }}>
           รายงานข้อมูลบิล : {firstDateText} - {lastDateText}
@@ -215,13 +246,13 @@ const EditPDF: React.FC<Props> = ({ data, formatDate }) => {
               const cashDisplay = isSplit
                 ? toNumber(item.cash_transfer1).toLocaleString()
                 : isCashOnly
-                ? "เงินสด"
+                ? toNumber(item.total).toLocaleString() // แก้ไขให้แสดงยอด total เมื่อจ่ายเงินสดเท่านั้น
                 : "-";
 
               const transferDisplay = isSplit
                 ? toNumber(item.cash_transfer2).toLocaleString()
                 : isTransferOnly
-                ? "โอน"
+                ? toNumber(item.total).toLocaleString() // แก้ไขให้แสดงยอด total เมื่อจ่ายโอน/บัตรเท่านั้น
                 : "-";
 
               return (
@@ -259,8 +290,10 @@ const EditPDF: React.FC<Props> = ({ data, formatDate }) => {
                   <td style={{ ...cellStyle, ...styleRow }}>
                     {typeRefers.length ? typeRefers : "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>{cashDisplay}</td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={{ ...rightAlignStyle, ...styleRow }}>
+                    {cashDisplay}
+                  </td>
+                  <td style={{ ...rightAlignStyle, ...styleRow }}>
                     {transferDisplay}
                   </td>
                   <td style={{ ...rightAlignStyle, ...styleRow }}>

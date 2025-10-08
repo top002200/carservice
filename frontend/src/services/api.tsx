@@ -625,20 +625,33 @@ export async function updateBill(
       body: JSON.stringify(data),
     });
 
-    const resText = await response.text();
+    // 💡 อ่าน Response เป็น JSON เสมอ เพื่อให้ได้ Message/Error แม้ว่า !response.ok
+    const res = await response.json(); 
 
-    if (!response.ok) {
-      throw new Error(resText || `HTTP ${response.status}`);
+    if (response.ok) {
+      // 🟢 กรณีสำเร็จ: ส่งคืนตามรูปแบบที่คาดหวัง { status: true, message, data }
+      return { 
+        status: true, 
+        message: res.message || "อัปเดตบิลสำเร็จ", 
+        data: res.data || res // ใช้ res.data หรือ res ถ้าเซิร์ฟเวอร์ส่งข้อมูลบิลมาตรงๆ
+      };
+    } else {
+      // 🔴 กรณีมีข้อผิดพลาด (เช่น 400, 500): ส่งคืนข้อความ Error จากเซิร์ฟเวอร์
+      console.error(`API Error updating bill ${billId}:`, res);
+      return { 
+        status: false, 
+        message: res.error || res.message || `ไม่สามารถอัปเดตบิลได้ (HTTP ${response.status})` 
+      };
     }
-
-    const res = resText ? JSON.parse(resText) : { status: true };
-    return res;
-  } catch (error) {
-    console.error("Error updating bill:", error);
-    return { status: false, message: "เกิดข้อผิดพลาดในการอัปเดตบิล" };
+  } catch (error: any) {
+    // 🟠 กรณีเกิดข้อผิดพลาดทาง Network หรือ JSON Parse Error
+    console.error("Network/Parsing Error updating bill:", error);
+    return { 
+      status: false, 
+      message: error.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ/ประมวลผลข้อมูล" 
+    };
   }
 }
-
 // ลบบิล
 export async function deleteBill(billId: string) {
   try {
@@ -747,7 +760,6 @@ export async function getExpenseBillById(id: string) {
   }
 }
 
-// Delete Expense Bill
 export async function deleteExpenseBill(id: string) {
   try {
     const response = await fetch(`${apiURL}/expensebill/${id}`, {
@@ -794,4 +806,5 @@ export {
   updateSubmission,
   deleteSubmission,
   updateHeadingStatus,
+ 
 };

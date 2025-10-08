@@ -5,6 +5,7 @@ import {
   faCircleInfo,
   faFilePdf,
   faPlus,
+  faCreditCard,
 } from "@fortawesome/free-solid-svg-icons";
 import { getAllBills, updateBill } from "../../services/api";
 import Swal from "sweetalert2";
@@ -14,6 +15,7 @@ import EditPDF from "./EditPDF";
 import html2pdf from "html2pdf.js";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import ModalPay from "./ModalPay";
 
 interface Bill {
   id?: number;
@@ -47,6 +49,8 @@ const User: React.FC = () => {
   const [adjustNote, setAdjustNote] = useState("");
   const [adjustAmount, setAdjustAmount] = useState<number | null>(null);
   const [adjustTargetId] = useState<number | null>(null);
+  const [isPayModalOpen, setIsPayModalOpen] = useState(false);
+  const [billToPay, setBillToPay] = useState<Bill | null>(null);
 
   const fetchBills = async () => {
     try {
@@ -171,6 +175,10 @@ const User: React.FC = () => {
     "พฤศจิกายน",
     "ธันวาคม",
   ];
+  const handleOpenPayModal = (bill: Bill) => {
+    setBillToPay(bill);
+    setIsPayModalOpen(true);
+  };
 
   const selectedMonthName =
     selectedMonth !== "" ? monthNames[parseInt(selectedMonth) - 1] : "ทั้งหมด";
@@ -459,17 +467,43 @@ const User: React.FC = () => {
                 <td>{item.phone}</td>
                 <td>{formatDate(item.created_at)}</td>
                 <td>
-                  <Button
-                    variant="outline-info"
-                    onClick={() => openBillDetail(item)}
-                  >
-                    <FontAwesomeIcon icon={faCircleInfo} />
-                  </Button>
+                  {/* 💡 ใช้ d-flex และ gap-2 เพื่อจัดให้อยู่ในแถวเดียวกันและมีช่องว่างระหว่างปุ่ม */}
+                  <div className="d-flex justify-content-center">
+                    {/* ปุ่ม 1: รายละเอียดบิล */}
+                    <Button
+                      variant="outline-info"
+                      size="sm" // ปรับขนาดให้เป็น sm เพื่อความสวยงามถ้าต้องการ
+                      onClick={() => openBillDetail(item)}
+                      className="me-2" // 💡 เพิ่มระยะห่างด้านขวาเล็กน้อย
+                      title="ดูรายละเอียดบิล"
+                    >
+                      <FontAwesomeIcon icon={faCircleInfo} />
+                    </Button>
+
+                    {/* ปุ่ม 2: บันทึกการชำระเงิน */}
+                    <Button
+                      variant="outline-success"
+                      size="sm"
+                      onClick={() => handleOpenPayModal(item)}
+                      title="บันทึกการชำระเงิน"
+                    >
+                      <FontAwesomeIcon icon={faCreditCard} />
+                    </Button>
+                  </div>
                 </td>
               </tr>
             ))}
           </tbody>
         </Table>
+        <ModalPay
+          show={isPayModalOpen}
+          onHide={() => setIsPayModalOpen(false)}
+          bill={billToPay}
+          onSave={() => {
+            setIsPayModalOpen(false); // ปิด Modal หลังจากบันทึก
+            fetchBills(); // โหลดข้อมูลใหม่ทั้งหมด
+          }}
+        />
 
         <Pagination className="justify-content-center">
           <Pagination.Prev
