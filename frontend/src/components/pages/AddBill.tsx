@@ -701,128 +701,11 @@ const AddBill = () => {
             </div>
           </div>
 
-          {/* 6. วิธีการชำระเงิน */}
-          <div className="card mb-1">
-            <div className="card-header bg-purple text-black">
-              <h5 className="mb-0">6. วิธีการชำระเงิน</h5>
-            </div>
-            <div className="card-body">
-              <div className="row">
-                {/* เงินสด */}
-                <div className="col-md-4 mb-3">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="payment_method"
-                      id="cash"
-                      value="cash"
-                      checked={formData.payment_method === "cash"}
-                      onChange={handleInputChange}
-                    />
-                    <label className="form-check-label" htmlFor="cash">
-                      เงินสด
-                    </label>
-                  </div>
-                </div>
-
-                {/* โอนเงิน */}
-                <div className="col-md-4 mb-3">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="payment_method"
-                      id="transfer"
-                      value="transfer"
-                      checked={formData.payment_method === "transfer"}
-                      onChange={handleInputChange}
-                    />
-                    <label className="form-check-label" htmlFor="transfer">
-                      โอนเงิน
-                    </label>
-                  </div>
-                </div>
-
-                {/* เงินสด + โอนเงิน */}
-                <div className="col-md-4 mb-3">
-                  <div className="form-check">
-                    <input
-                      className="form-check-input"
-                      type="radio"
-                      name="payment_method"
-                      id="cash+transfer"
-                      value="cash+transfer"
-                      checked={formData.payment_method === "cash+transfer"}
-                      onChange={handleInputChange}
-                    />
-                    <label className="form-check-label" htmlFor="cash+transfer">
-                      เงินสด + โอนเงิน
-                    </label>
-                  </div>
-                </div>
-              </div>
-
-              {/* ถ้าเลือกเงินสด+โอนเงิน ให้แสดง 2 ช่อง */}
-              {formData.payment_method === "cash+transfer" && (
-                <div className="row mt-3">
-                  <div className="col-md-6">
-                    <label htmlFor="cash_transfer1" className="form-label">
-                      เงินสด
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      id="cash_transfer1"
-                      value={formData.cash_transfer1 || 0}
-                      min={0}
-                      max={formData.total}
-                      onChange={(e) => {
-                        const cash = Math.min(
-                          parseInt(e.target.value) || 0,
-                          formData.total
-                        );
-                        setFormData((prev) => ({
-                          ...prev,
-                          cash_transfer1: cash,
-                          cash_transfer2: formData.total - cash,
-                        }));
-                      }}
-                    />
-                  </div>
-                  <div className="col-md-6">
-                    <label htmlFor="cash_transfer2" className="form-label">
-                      โอนเงิน
-                    </label>
-                    <input
-                      type="number"
-                      className="form-control"
-                      id="cash_transfer2"
-                      value={formData.cash_transfer2 || 0}
-                      min={0}
-                      max={formData.total}
-                      onChange={(e) => {
-                        const transfer = Math.min(
-                          parseInt(e.target.value) || 0,
-                          formData.total
-                        );
-                        setFormData((prev) => ({
-                          ...prev,
-                          cash_transfer2: transfer,
-                          cash_transfer1: formData.total - transfer,
-                        }));
-                      }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
+       
           {/* 7. รายละเอียดเพิ่มเติม */}
           <div className="card mb-1">
             <div className="card-header bg-purple text-black">
-              <h5 className="mb-0">7. รายละเอียดเพิ่มเติม</h5>
+              <h5 className="mb-0">6. รายละเอียดเพิ่มเติม</h5>
             </div>
             <div className="card-body">
               <div className="mb-3">
@@ -841,7 +724,7 @@ const AddBill = () => {
           {/* 8. วันที่ */}
           <div className="card mb-1">
             <div className="card-header bg-purple text-black">
-              <h5 className="mb-0">8. วันที่</h5>
+              <h5 className="mb-0">7. วันที่</h5>
             </div>
             <div className="card-body">
               <div className="row">
