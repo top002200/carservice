@@ -3,25 +3,111 @@ import { Modal, Button, Form, ButtonGroup, Alert } from "react-bootstrap";
 import Swal from "sweetalert2";
 import { updateBill } from "../../services/api"; // ต้องแน่ใจว่า path นี้ถูกต้อง
 
-// ใช้อินเทอร์เฟซ BillData ที่คุณให้มา
-interface BillData {
+
+// ใช้อินเทอร์เฟซ BillData ฉบับสมบูรณ์ที่คุณให้มา
+export interface BillData {
   id?: number;
   bill_number: string;
   username: string;
+
+  // ผู้สร้างบิล
+  created_by?: string;
+
+  user?: {
+    user_id: string;
+    user_name: string;
+    email: string;
+    phone_number: string;
+  };
+
+  // รายการสินค้า/บริการ
+  name1: string | null;
+  amount1: number | null;
+  name2: string;
+  amount2: number | null;
+  name3: string;
+  amount3: number | null;
+  name4: string;
+  amount4: number | null;
+
+  // ข้อมูลภาษี
+  tax1: number | null;
+  tax2: number | null;
+  tax3: number | null;
+  tax4: number | null;
+  taxgo1: number | null;
+  taxgo2: number | null;
+  taxgo3: number | null;
+  taxgo4: number | null;
+
+  // ข้อมูลตรวจสอบ
+  check1: number | null;
+  check2: number | null;
+  check3: number | null;
+  check4: number | null;
+
+  // ส่วนเสริม
+  extension1: string;
+  extension2: number | null;
+  extension3: string;
+  extension4: number | null;
+
+  // ข้อมูลอ้างอิง
+  refer1: string;
+  refer2: string;
+  refer3: string;
+  refer4: string;
+  typerefer1: string;
+  typerefer2: string;
+  typerefer3: string;
+  typerefer4: string;
+
+  // ข้อมูลทะเบียนรถ
+  car_registration1: string;
+  car_registration2: string;
+  car_registration3: string;
+  car_registration4: string;
+
+  // วิธีการชำระเงิน
   payment_method:
     | "cash"
     | "transfer"
     | "credit_card"
     | "cash+transfer"
-    | "unpaid"
     | string;
+
+  // ✅ ฟิลด์ใหม่ (ไม่มีทศนิยม → number)
   cash_transfer1?: number; // จำนวนเงินสด
   cash_transfer2?: number; // จำนวนเงินโอน
+
+  // ข้อมูลเพิ่มเติม
   description: string;
   phone: string;
+
+  // ยอดรวมทั้งหมด
   total: number;
-  bill_date?: string; // ✅ เพิ่มเพื่อใช้ตรวจสอบเวลา (เช่น "2025-08-10")
-  [key: string]: any;
+
+  // วันที่
+  date: string;
+  created_at: string;
+  updated_at: string;
+  bill_date?: string; // เพิ่ม bill_date กลับมาเพื่อให้โค้ด ModalPay ทำงานได้
+
+  // Optional timestamps
+  deleted_at?: string | null;
+
+  // ✅ ฟิลด์ปรับยอด
+  adjustment_type?: "เพิ่ม" | "ลด";
+  adjustment_note?: string;
+  adjustment_amount?: number;
+
+  // สำหรับ note จาก payment
+  payment_note?: string;
+
+  // สำหรับ status
+  payment_status?: string;
+
+  [key: string]: any; // ใช้เพื่อให้เข้าถึง property ที่ไม่ได้ระบุไว้ใน Interface
 }
 
 interface ModalPayProps {
@@ -50,9 +136,12 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
 
   // ✅ เพิ่มฟังก์ชันตรวจสอบว่าเกินเวลา 05:15 แล้วหรือยัง
   const isTimeLocked = (() => {
-    if (!bill?.bill_date) return false;
+    // ใช้ bill.date แทน bill.bill_date เพื่อให้ตรงกับ interface ที่ให้มา
+    const dateToUse = bill?.bill_date || bill?.date;
+    if (!dateToUse) return false;
     try {
-      const cutoffTime = new Date(`${bill.bill_date}T05:15:00`);
+      // สร้างวันที่ cutoff โดยใช้ bill_date/date และเวลา 05:15:00
+      const cutoffTime = new Date(`${dateToUse}T05:15:00`);
       const now = new Date();
       return now > cutoffTime;
     } catch (e) {
@@ -63,6 +152,7 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
 
   useEffect(() => {
     if (show && bill) {
+      // ถ้ามีการชำระเงินแล้ว ให้แสดง method ที่บันทึกไว้
       setSelectedMethod(
         isPaymentSettled
           ? (bill.payment_method as any)
@@ -70,6 +160,7 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
           ? ""
           : (bill.payment_method as any) || ""
       );
+      // ใช้ bill.cash_transfer1 และ bill.cash_transfer2 เพื่อแสดงยอดที่จ่ายไปแล้ว
       setCashAmount(bill.cash_transfer1 || "");
       setTransferAmount(bill.cash_transfer2 || "");
       setNote(bill.payment_note || "");
@@ -111,9 +202,9 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
 
     if (method === "cash") {
       setCashAmount(billTotal);
-      setTransferAmount("");
+      setTransferAmount(0); // เคลียร์ Transfer เป็น 0
     } else if (method === "transfer") {
-      setCashAmount("");
+      setCashAmount(0); // เคลียร์ Cash เป็น 0
       setTransferAmount(billTotal);
     } else if (method === "cash+transfer") {
       setCashAmount(0);
@@ -139,25 +230,23 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
 
     const updateData: Partial<BillData> = {
       payment_method: selectedMethod,
-      cash_transfer1:
-        selectedMethod === "cash+transfer" || selectedMethod === "cash"
-          ? currentCash
-          : 0,
-      cash_transfer2:
-        selectedMethod === "cash+transfer" || selectedMethod === "transfer"
-          ? currentTransfer
-          : 0,
+      cash_transfer1: currentCash,
+      cash_transfer2: currentTransfer,
       payment_note: note,
       payment_status: isPaid ? "paid" : "partial",
     };
 
+    // เนื่องจากค่า currentCash/currentTransfer ถูกกำหนดค่าถูกต้องตาม selectedMethod แล้ว
+    // จึงสามารถใช้ค่าเหล่านั้นได้โดยตรง ไม่ต้องมี if/else ซ้ำอีก
+    // แต่เพื่อความชัดเจน หากเป็น cash/transfer เดี่ยวๆ ก็สามารถตั้งค่าให้มั่นใจได้
     if (selectedMethod === "cash") {
-      updateData.cash_transfer1 = currentCash;
-      updateData.cash_transfer2 = 0;
+        updateData.cash_transfer1 = billTotal;
+        updateData.cash_transfer2 = 0;
     } else if (selectedMethod === "transfer") {
-      updateData.cash_transfer1 = 0;
-      updateData.cash_transfer2 = currentTransfer;
+        updateData.cash_transfer1 = 0;
+        updateData.cash_transfer2 = billTotal;
     }
+
 
     try {
       const res = await updateBill(bill.id, updateData);
@@ -183,10 +272,16 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
   };
 
   const handleNumChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     setter: React.Dispatch<React.SetStateAction<number | "">>
   ) => {
-    if (isPaymentSettled || isTimeLocked) return; // ✅ เพิ่มเงื่อนไขเวลา
+    // ปิดการแก้ไขถ้าเป็น Cash/Transfer เดี่ยวๆ (เพราะค่าถูกกำหนดเป็น billTotal แล้ว)
+    // การเช็ค disabled ใน Form.Control ก็เพียงพอ แต่มีเงื่อนไขนี้ไว้ในกรณีฉุกเฉิน
+    const isSingleMethodLocked = 
+        (selectedMethod === 'cash' || selectedMethod === 'transfer') && 
+        (isPaymentSettled || isTimeLocked);
+
+    if (isSingleMethodLocked) return; 
 
     const value = e.target.value.trim();
     if (value === "") {
@@ -200,6 +295,18 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
       }
     }
   };
+
+  // 💡 ตัวแปรสำหรับควบคุมการปิด/เปิดฟิลด์
+  const isCashInputDisabled = 
+    isPaymentSettled || 
+    isTimeLocked || 
+    selectedMethod === 'cash';
+
+  const isTransferInputDisabled = 
+    isPaymentSettled || 
+    isTimeLocked || 
+    selectedMethod === 'transfer';
+
 
   return (
     <Modal show={show} onHide={onHide} centered>
@@ -222,7 +329,7 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
         {isTimeLocked && (
           <Alert variant="warning" className="text-center">
             หมดเวลาบันทึกการชำระเงินแล้ว (หลังเวลา 05:15 ของวันที่{" "}
-            {bill?.bill_date || "-"})
+            {bill?.bill_date || bill?.date || "-"})
           </Alert>
         )}
 
@@ -284,7 +391,8 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
                   onChange={(e) => handleNumChange(e, setCashAmount)}
                   min={0}
                   max={billTotal}
-                  disabled={isPaymentSettled || isTimeLocked} // ✅ เพิ่ม
+                  // ✅ ปิดการใช้งานฟิลด์
+                  disabled={isCashInputDisabled} 
                 />
               </Form.Group>
             )}
@@ -300,7 +408,8 @@ const ModalPay: React.FC<ModalPayProps> = ({ show, onHide, bill, onSave }) => {
                   onChange={(e) => handleNumChange(e, setTransferAmount)}
                   min={0}
                   max={billTotal}
-                  disabled={isPaymentSettled || isTimeLocked} // ✅ เพิ่ม
+                  // ✅ ปิดการใช้งานฟิลด์
+                  disabled={isTransferInputDisabled}
                 />
               </Form.Group>
             )}

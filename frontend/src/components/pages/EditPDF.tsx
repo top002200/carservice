@@ -44,21 +44,87 @@ const EditPDF: React.FC<Props> = ({ data, formatDate }) => {
   const formatNumber = (value: number) =>
     value.toLocaleString(undefined, { minimumFractionDigits: 2 });
 
-  const cellStyle: React.CSSProperties = {
+  // *** ปรับปรุง BASE STYLES ***
+  const borderStyle = "1px solid #ccc";
+  const borderRed = "3px solid red"; // สำหรับ เงินสด, โอน
+  const borderPurple = "3px solid purple"; // สำหรับ ทั้งหมด
+
+  const baseCellStyle: React.CSSProperties = {
     textAlign: "center",
     verticalAlign: "top",
     padding: "4px",
     whiteSpace: "pre-line",
-    borderBottom: "1px solid #ccc",
+    borderBottom: borderStyle,
+    borderRight: borderStyle,
   };
 
-  const rightAlignStyle: React.CSSProperties = {
+  const baseRightAlignStyle: React.CSSProperties = {
+    ...baseCellStyle,
     textAlign: "right",
-    verticalAlign: "top",
-    padding: "4px",
-    whiteSpace: "pre-line",
-    borderBottom: "1px solid #ccc",
   };
+
+  // *** กำหนด Style สำหรับ HEADERS (TH) ***
+  const thCashStyle: React.CSSProperties = {
+    ...baseCellStyle,
+    borderLeft: borderRed, // เริ่มกรอบแดงด้านซ้ายที่ 'เงินสด'
+    borderTop: borderRed,
+    borderBottom: borderRed,
+    // borderRight: borderStyle, // ถูกแทนที่ด้วย borderRed ในการแก้ไขนี้
+    borderRight: borderRed, // *** แก้ไข: เส้นกั้นระหว่าง เงินสด กับ โอน เป็นสีแดง ***
+  };
+
+  const thTransferStyle: React.CSSProperties = {
+    ...baseCellStyle,
+    borderTop: borderRed, // เชื่อมต่อกรอบด้านบนสีแดง
+    borderBottom: borderRed, // เชื่อมต่อกรอบด้านล่างสีแดง
+    // borderRight: borderStyle, // ถูกแทนที่ด้วย borderRed ในการแก้ไขนี้
+    borderRight: borderRed, // *** แก้ไข: เส้นกั้นระหว่าง โอน กับ ทั้งหมด เป็นสีแดง ***
+  };
+
+  const thTotalStyle: React.CSSProperties = {
+    ...baseRightAlignStyle,
+    borderRight: borderPurple, // ปิดกรอบม่วงด้านขวาที่ 'ทั้งหมด'
+    borderTop: borderPurple,
+    borderBottom: borderPurple,
+  };
+
+  // *** กำหนด Style สำหรับ DATA CELLS (TD) ภายใน tbody ***
+
+  // สไตล์สำหรับคอลัมน์ทั่วไปที่อยู่หน้า 'เงินสด'
+  const generalCellStyleData = (index: number): React.CSSProperties => ({
+    ...baseCellStyle,
+    ...getRowStyle(index),
+  });
+
+  // สไตล์สำหรับคอลัมน์ 'เงินสด' (ขอบซ้าย/บน/ล่างเป็นสีแดง)
+  const tdCashStyleData = (index: number): React.CSSProperties => ({
+    ...baseRightAlignStyle,
+    ...getRowStyle(index),
+    borderLeft: borderRed,
+    borderTop: "none", // ใช้ borderBottom ปกติ
+    borderBottom: borderRed,
+    // borderRight: borderStyle, // ถูกแทนที่ด้วย borderRed ในการแก้ไขนี้
+    borderRight: borderRed, // *** แก้ไข: เส้นกั้นระหว่าง เงินสด กับ โอน เป็นสีแดง ***
+  });
+
+  // สไตล์สำหรับคอลัมน์ 'โอน' (ขอบบน/ล่างเป็นสีแดง)
+  const tdTransferStyleData = (index: number): React.CSSProperties => ({
+    ...baseRightAlignStyle,
+    ...getRowStyle(index),
+    borderTop: "none", // ใช้ borderBottom ปกติ
+    borderBottom: borderRed, // เชื่อมต่อกรอบด้านล่างสีแดง
+    // borderRight: borderStyle, // ถูกแทนที่ด้วย borderRed ในการแก้ไขนี้
+    borderRight: borderRed, // *** แก้ไข: เส้นกั้นระหว่าง โอน กับ ทั้งหมด เป็นสีแดง ***
+  });
+
+  // สไตล์สำหรับคอลัมน์ 'ทั้งหมด' (ขอบขวา/บน/ล่างเป็นสีม่วง)
+  const tdTotalStyleData = (index: number): React.CSSProperties => ({
+    ...baseRightAlignStyle,
+    ...getRowStyle(index),
+    borderRight: borderPurple,
+    borderTop: "none", // ใช้ borderBottom ปกติ
+    borderBottom: borderPurple,
+  });
 
   const getRowStyle = (index: number): React.CSSProperties => ({
     backgroundColor: index % 2 === 0 ? "#ffffff" : "#e0e0e0",
@@ -166,26 +232,28 @@ const EditPDF: React.FC<Props> = ({ data, formatDate }) => {
         >
           <thead>
             <tr style={{ backgroundColor: "#d0d0d0" }}>
-              <th style={cellStyle}>วันที่</th>
-              <th style={cellStyle}>เลขที่บิล</th>
-              <th style={cellStyle}>พนักงานออกบิล</th>
-              <th style={cellStyle}>ทะเบียน</th>
-              <th style={cellStyle}>ตรวจ</th>
-              <th style={cellStyle}>พรบ</th>
-              <th style={cellStyle}>ภาษี</th>
-              <th style={cellStyle}>ค่าฝากต่อ</th>
-              <th style={cellStyle}>บริการเสริม</th>
-              <th style={cellStyle}>เพิ่มเติม</th>
-              <th style={cellStyle}>ประกัน</th>
-              <th style={cellStyle}>เงินสด</th>
-              <th style={cellStyle}>โอน</th>
-              <th style={rightAlignStyle}>ทั้งหมด</th>
+              <th style={baseCellStyle}>วันที่</th>
+              <th style={baseCellStyle}>เลขที่บิล</th>
+              <th style={baseCellStyle}>พนักงานออกบิล</th>
+              <th style={baseCellStyle}>ทะเบียน</th>
+              <th style={baseCellStyle}>ตรวจ</th>
+              <th style={baseCellStyle}>พรบ</th>
+              <th style={baseCellStyle}>ภาษี</th>
+              <th style={baseCellStyle}>ค่าฝากต่อ</th>
+              <th style={baseCellStyle}>บริการเสริม</th>
+              <th style={baseCellStyle}>เพิ่มเติม</th>
+              {/* คอลัมน์ 'ประกัน' กลับไปใช้สไตล์ปกติ */}
+              <th style={baseCellStyle}>ประกัน</th>
+              {/* คอลัมน์ 'เงินสด' เริ่มกรอบแดงและมีเส้นกั้นขวาเป็นสีแดง */}
+              <th style={thCashStyle}>เงินสด</th>
+              {/* คอลัมน์ 'โอน' มีเส้นกั้นขวาเป็นสีแดง */}
+              <th style={thTransferStyle}>โอน</th>
+              {/* คอลัมน์ 'ทั้งหมด' ปิดกรอบม่วง */}
+              <th style={thTotalStyle}>ทั้งหมด</th>
             </tr>
           </thead>
           <tbody>
             {pageData.map((item, index) => {
-              const styleRow = getRowStyle(index);
-
               const carRegs = renderLines(
                 [
                   item.car_registration1,
@@ -246,57 +314,62 @@ const EditPDF: React.FC<Props> = ({ data, formatDate }) => {
               const cashDisplay = isSplit
                 ? toNumber(item.cash_transfer1).toLocaleString()
                 : isCashOnly
-                ? toNumber(item.total).toLocaleString() // แก้ไขให้แสดงยอด total เมื่อจ่ายเงินสดเท่านั้น
+                ? toNumber(item.total).toLocaleString()
                 : "-";
 
               const transferDisplay = isSplit
                 ? toNumber(item.cash_transfer2).toLocaleString()
                 : isTransferOnly
-                ? toNumber(item.total).toLocaleString() // แก้ไขให้แสดงยอด total เมื่อจ่ายโอน/บัตรเท่านั้น
+                ? toNumber(item.total).toLocaleString()
                 : "-";
+
+              // *** กำหนดสไตล์ในแถวข้อมูลโดยใช้ index ***
+              const styleRowIndex = index;
 
               return (
                 <tr key={index}>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {item.created_at ? formatDate(item.created_at) : "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {item.bill_number || item.id}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {item.user?.user_name || item.created_by || "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {carRegs.length ? carRegs : "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {checks.length ? checks : "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {amounts.length ? amounts : "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {taxes.length ? taxes : "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {taxgos.length ? taxgos : "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {extensionNames.length ? extensionNames : "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {extensionPrices.length ? extensionPrices : "-"}
                   </td>
-                  <td style={{ ...cellStyle, ...styleRow }}>
+                  {/* คอลัมน์ 'ประกัน' ใช้สไตล์ปกติ */}
+                  <td style={generalCellStyleData(styleRowIndex)}>
                     {typeRefers.length ? typeRefers : "-"}
                   </td>
-                  <td style={{ ...rightAlignStyle, ...styleRow }}>
-                    {cashDisplay}
-                  </td>
-                  <td style={{ ...rightAlignStyle, ...styleRow }}>
+                  {/* คอลัมน์ 'เงินสด' เริ่มกรอบแดงและมีเส้นกั้นขวาเป็นสีแดง */}
+                  <td style={tdCashStyleData(styleRowIndex)}>{cashDisplay}</td>
+                  {/* คอลัมน์ 'โอน' มีเส้นกั้นขวาเป็นสีแดง */}
+                  <td style={tdTransferStyleData(styleRowIndex)}>
                     {transferDisplay}
                   </td>
-                  <td style={{ ...rightAlignStyle, ...styleRow }}>
+                  {/* คอลัมน์ 'ทั้งหมด' ปิดกรอบม่วง */}
+                  <td style={tdTotalStyleData(styleRowIndex)}>
                     {toNumber(item.total).toLocaleString()}
                   </td>
                 </tr>

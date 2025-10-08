@@ -4,7 +4,9 @@ import { createBill } from "../../services/api";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 
-import { BillData } from "../../interface/IBill";
+// Assuming BillData interface does not contain the payment method fields 
+// or that they will be optional/removed there as well.
+import { BillData } from "../../interface/IBill"; 
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { registerLocale } from "react-datepicker";
@@ -65,8 +67,7 @@ const AddBill = () => {
     car_registration3: "",
     car_registration4: "",
 
-    // วิธีการชำระเงิน
-    payment_method: "cash",
+    // **[REMOVED]** วิธีการชำระเงิน: payment_method: "cash",
 
     // ข้อมูลเพิ่มเติม
     description: "",
@@ -238,6 +239,8 @@ const AddBill = () => {
       typerefer2: toNumber(formData.typerefer2) as any,
       typerefer3: toNumber(formData.typerefer3) as any,
       typerefer4: toNumber(formData.typerefer4) as any,
+      
+      // **[REMOVED]** payment_method, cash_transfer1, cash_transfer2 (as they were not explicitly used/defined)
 
       total: lockedTotalFixed, // <<<< บันทึกยอดรวมตามที่แสดง
       date: new Date(formData.date).toISOString(), // วันนัดรับ (ISO)
@@ -701,7 +704,7 @@ const AddBill = () => {
             </div>
           </div>
 
-       
+        
           {/* 7. รายละเอียดเพิ่มเติม */}
           <div className="card mb-1">
             <div className="card-header bg-purple text-black">

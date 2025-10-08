@@ -16,6 +16,7 @@ import html2pdf from "html2pdf.js";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import ModalPay from "./ModalPay";
+import { BillData } from "../../interface/IBill.ts";
 
 interface Bill {
   id?: number;
@@ -50,7 +51,7 @@ const User: React.FC = () => {
   const [adjustAmount, setAdjustAmount] = useState<number | null>(null);
   const [adjustTargetId] = useState<number | null>(null);
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
-  const [billToPay, setBillToPay] = useState<Bill | null>(null);
+  const [billToPay, setBillToPay] = useState<BillData | null>(null);
 
   const fetchBills = async () => {
     try {
@@ -175,8 +176,9 @@ const User: React.FC = () => {
     "พฤศจิกายน",
     "ธันวาคม",
   ];
-  const handleOpenPayModal = (bill: Bill) => {
-    setBillToPay(bill);
+  const handleOpenPayModal = (bill: BillData) => {
+    // <--- แก้ไขตรงนี้: ใช้ BillData แทน Bill
+    setBillToPay(bill); // ตอนนี้จะไม่มี error แล้ว เพราะ bill เป็น BillData
     setIsPayModalOpen(true);
   };
 
@@ -484,7 +486,7 @@ const User: React.FC = () => {
                     <Button
                       variant="outline-success"
                       size="sm"
-                      onClick={() => handleOpenPayModal(item)}
+                      onClick={() => handleOpenPayModal(item as BillData)}
                       title="บันทึกการชำระเงิน"
                     >
                       <FontAwesomeIcon icon={faCreditCard} />
