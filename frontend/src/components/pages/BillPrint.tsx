@@ -24,9 +24,11 @@ const BillPrint = () => {
     navigate("/user");
   };
 
+  const TH_LOCALE = "th-TH";
+
   const formatCurrency = (amount: number | null) => {
     if (amount === null || amount === 0) return "0.00";
-    return amount.toLocaleString("th-TH", {
+    return amount.toLocaleString(TH_LOCALE, {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
@@ -35,7 +37,7 @@ const BillPrint = () => {
   const formatDate = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString("th-TH", {
+    return date.toLocaleDateString(TH_LOCALE, {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -45,7 +47,7 @@ const BillPrint = () => {
   const formatTime = (dateString: string) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleTimeString("th-TH", {
+    return date.toLocaleTimeString(TH_LOCALE, {
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -71,7 +73,6 @@ const BillPrint = () => {
   };
 
   // Function to render inspection items (car reg + check)
-  // Function to render inspection items (car reg + check)
   const renderInspectionItems = () => {
     const items = [];
     for (let i = 1; i <= 4; i++) {
@@ -80,7 +81,6 @@ const BillPrint = () => {
       ] as string;
       const check = billData[`check${i}` as keyof BillData] as number | null;
 
-      // ✅ แสดงทะเบียนเสมอถ้ามีค่า carReg
       if (carReg) {
         items.push(
           <div
@@ -100,7 +100,6 @@ const BillPrint = () => {
     return items.length > 0 ? items : <div>-</div>;
   };
 
-  // Function to render tax items
   // Function to render tax items (แสดงแม้ไม่มีทะเบียน ถ้ามีตัวเลข > 0)
   const renderTaxItems = () => {
     const items = [];
@@ -111,7 +110,7 @@ const BillPrint = () => {
       const tax = billData[`tax${i}` as keyof BillData] as number | null;
       const taxgo = billData[`taxgo${i}` as keyof BillData] as number | null;
 
-      // ✅ แสดงเฉพาะค่าที่มากกว่า 0
+      // แสดงเฉพาะค่าที่มากกว่า 0
       if (tax !== null && tax !== undefined && tax > 0) {
         items.push(
           <div key={`tax-${i}`} className="d-flex justify-content-between">
@@ -205,7 +204,7 @@ const BillPrint = () => {
         border: "1px solid #ccc",
         borderRadius: "10px",
         padding: "20px",
-        backgroundColor: "#f5f5f5", // ✅ พื้นหลังเทาอ่อน
+        backgroundColor: "#f5f5f5",
         boxShadow: "0 2px 6px rgba(0, 0, 0, 0.05)",
       }}
     >
@@ -224,6 +223,10 @@ const BillPrint = () => {
       {/* Printable bill section */}
       <div
         id="bill-to-print"
+        // ✅ เพิ่ม class 'disable-editing' เพื่อให้ CSS ป้องกันการเลือกข้อความมีผล
+        className="disable-editing" 
+        lang="th"
+        translate="no"
         style={{
           width: "80mm",
           margin: "0 auto",
@@ -232,7 +235,7 @@ const BillPrint = () => {
           fontSize: "14px",
         }}
       >
-        {/* Header */}
+        {/* Header (เนื้อหาเดิม) */}
         <div className="text-center mb-2">
           <img
             src={peaLogo}
@@ -264,7 +267,7 @@ const BillPrint = () => {
 
         <hr style={{ borderColor: "#74045f", margin: "5px 0" }} />
 
-        {/* Customer info */}
+        {/* Customer info (เนื้อหาเดิม) */}
         <div style={{ marginBottom: "8px" }}>
           <div>
             <strong>ลูกค้า:</strong> {billData.username || "-"}
@@ -273,7 +276,6 @@ const BillPrint = () => {
             <strong>โทร:</strong> {billData.phone || "-"}
           </div>
 
-          {/* ✅ แสดงทะเบียนถ้ามีค่า */}
           {(billData.car_registration1 ||
             billData.car_registration2 ||
             billData.car_registration3 ||
@@ -294,7 +296,7 @@ const BillPrint = () => {
 
         <hr style={{ borderColor: "#74045f", margin: "5px 0" }} />
 
-        {/* Expense summary */}
+        {/* Expense summary (เนื้อหาเดิม) */}
         <div style={{ marginBottom: "8px" }}>
           <div className="text-center" style={{ fontWeight: "bold" }}>
             สรุปค่าใช้จ่ายทั้งหมด
@@ -379,7 +381,7 @@ const BillPrint = () => {
 
         <hr style={{ borderColor: "#74045f", margin: "5px 0" }} />
 
-        {/* Total and payment method */}
+        {/* Total and payment method (เนื้อหาเดิม) */}
         <div style={{ marginBottom: "8px" }}>
           <div
             className="d-flex justify-content-between"
@@ -396,16 +398,18 @@ const BillPrint = () => {
             {billData.payment_method === "cash+transfer" && (
               <>
                 เงินสดและเงินโอน
-              
-                  <div>เงินสด: {billData.cash_transfer1} บาท</div>
-                  <div>เงินโอน: {billData.cash_transfer2} บาท</div>
-       
+                <div style={{ marginLeft: "10px" }}>
+                  เงินสด: {formatCurrency(billData.cash_transfer1 || 0)} บาท
+                </div>
+                <div style={{ marginLeft: "10px" }}>
+                  เงินโอน: {formatCurrency(billData.cash_transfer2 || 0)} บาท
+                </div>
               </>
             )}
           </div>
         </div>
 
-        {/* Footer */}
+        {/* Footer (เนื้อหาเดิม) */}
         <div
           style={{
             marginTop: "10px",
@@ -421,35 +425,50 @@ const BillPrint = () => {
       {/* Print styles */}
       <style>
         {`
-            @media print {
-              body * {
-                visibility: hidden;
-                margin: 0;
-                padding: 0;
-              }
-              #bill-to-print, #bill-to-print * {
-                visibility: visible;
-              }
-              #bill-to-print {
-                position: absolute;
-                left: 0;
-                top: 0;
-                width: 80mm;
-                margin: 0;
-                padding: 10px;
-                border: none;
-                box-shadow: none;
-                font-size: 14px;
-              }
-              .no-print {
-                display: none !important;
-              }
-              @page {
-                size: 80mm auto;
-                margin: 0;
-              }
+          /* === START: CSS PURELY FOR PREVENTING EASY EDITING ON SCREEN === */
+          /* ต้องใช้ class เพื่อให้มีผลเฉพาะเมื่อแสดงผลบนจอ (ไม่ใช่ตอนสั่งพิมพ์) */
+          .disable-editing {
+            /* ป้องกันการเลือกข้อความด้วยเมาส์ */
+            user-select: none !important; 
+            /* ป้องกันไม่ให้เคอร์เซอร์เป็นตัวพิมพ์เมื่อคลิก */
+            pointer-events: none !important;
+          }
+          /* === END: CSS PURELY FOR PREVENTING EASY EDITING ON SCREEN === */
+
+
+          @media print {
+            body * {
+              visibility: hidden;
+              margin: 0;
+              padding: 0;
             }
-          `}
+            #bill-to-print, #bill-to-print * {
+              visibility: visible;
+              font-family: 'TH Sarabun New', sans-serif !important;
+              /* รีเซ็ตการป้องกันเมื่อเข้าสู่โหมดพิมพ์ */
+              user-select: auto !important;
+              pointer-events: auto !important;
+            }
+            #bill-to-print {
+              position: absolute;
+              left: 0;
+              top: 0;
+              width: 80mm;
+              margin: 0;
+              padding: 10px;
+              border: none;
+              box-shadow: none;
+              font-size: 14px;
+            }
+            .no-print {
+              display: none !important;
+            }
+            @page {
+              size: 80mm auto;
+              margin: 0;
+            }
+          }
+        `}
       </style>
     </div>
   );
