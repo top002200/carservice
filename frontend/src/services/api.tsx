@@ -4,6 +4,8 @@ import { HeadingData } from "../interface/IHeading";
 import { SubmissionData } from "../interface/ISubmission";
 import { BillData } from "../interface/IBill";
 import { ExpenseBillData } from "../interface/IExpenseBill";
+import { InsurancePolicy } from "../interface/IInsurance"; // Assuming this is your interface file
+
 
 // const apiURL = "http://localhost:8080";
 const apiURL = "https://carservice-j2jl.onrender.com";
@@ -779,6 +781,144 @@ export async function deleteExpenseBill(id: string) {
   }
 }
 
+
+
+
+export async function createInsurancePolicy(data: InsurancePolicy) {
+	try {
+		console.log("Sending insurance policy data:", JSON.stringify(data, null, 2));
+
+		const response = await fetch(`${apiURL}/insurance`, {
+			method: "POST",
+			headers: getAuthHeaders(),
+			body: JSON.stringify(data),
+		});
+
+		const res = await response.json();
+
+		if (response.ok) {
+			return { status: true, message: res.message || "สร้างกรมธรรม์สำเร็จ", data: res.data };
+		} else {
+			console.error("API Error creating policy:", res);
+			return {
+				status: false,
+				message: res.error || res.message || "ไม่สามารถสร้างกรมธรรม์ได้",
+			};
+		}
+	} catch (error: any) {
+		console.error("Error creating insurance policy:", error);
+		return { status: false, message: error.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ/ประมวลผลข้อมูล" };
+	}
+}
+
+// ดึงข้อมูลกรมธรรม์ทั้งหมด
+export async function getAllInsurancePolicies() {
+	try {
+		const response = await fetch(`${apiURL}/insurances`, {
+			method: "GET",
+			headers: getAuthHeaders(),
+		});
+
+		const res = await response.json();
+
+		if (response.ok) {
+			return { status: true, data: res.data || res };
+		} else {
+			console.error("API Error fetching policies:", res);
+			return {
+				status: false,
+				message: res.error || res.message || "ไม่สามารถดึงข้อมูลกรมธรรม์ทั้งหมดได้",
+			};
+		}
+	} catch (error: any) {
+		console.error("Error fetching insurance policies:", error);
+		return { status: false, message: error.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ/ประมวลผลข้อมูล" };
+	}
+}
+
+// ดึงกรมธรรม์ตาม Claim Number
+export async function getInsurancePolicyByClaimNumber(claimNumber: string) {
+	try {
+		const response = await fetch(`${apiURL}/insurance/${claimNumber}`, {
+			method: "GET",
+			headers: getAuthHeaders(),
+		});
+
+		const res = await response.json();
+
+		if (response.ok) {
+			return { status: true, data: res.data || res };
+		} else {
+			console.error(`API Error fetching policy ${claimNumber}:`, res);
+			return {
+				status: false,
+				message: res.error || res.message || `ไม่พบกรมธรรม์เลขที่ ${claimNumber}`,
+			};
+		}
+	} catch (error: any) {
+		console.error("Error fetching insurance policy:", error);
+		return { status: false, message: error.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ/ประมวลผลข้อมูล" };
+	}
+}
+
+// อัปเดตกกรมธรรม์
+export async function updateInsurancePolicy(
+	claimNumber: string,
+	data: Partial<InsurancePolicy>
+) {
+	try {
+		const response = await fetch(`${apiURL}/insurance/${claimNumber}`, {
+			method: "PUT",
+			headers: getAuthHeaders(),
+			body: JSON.stringify(data),
+		});
+
+		const res = await response.json();
+
+		if (response.ok) {
+			return {
+				status: true,
+				message: res.message || "อัปเดตกกรมธรรม์สำเร็จ",
+				data: res.data || res,
+			};
+		} else {
+			console.error(`API Error updating policy ${claimNumber}:`, res);
+			return {
+				status: false,
+				message: res.error || res.message || `ไม่สามารถอัปเดตกกรมธรรม์เลขที่ ${claimNumber} ได้`,
+			};
+		}
+	} catch (error: any) {
+		console.error("Error updating insurance policy:", error);
+		return { status: false, message: error.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ/ประมวลผลข้อมูล" };
+	}
+}
+
+// ลบกรมธรรม์
+export async function deleteInsurancePolicy(claimNumber: string) {
+	try {
+		const response = await fetch(`${apiURL}/insurance/${claimNumber}`, {
+			method: "DELETE",
+			headers: getAuthHeaders(),
+		});
+
+		const res = await response.json();
+
+		if (response.ok) {
+			return { status: true, message: res.message || "ลบกรมธรรม์สำเร็จ" };
+		} else {
+			console.error(`API Error deleting policy ${claimNumber}:`, res);
+			return {
+				status: false,
+				message: res.error || res.message || `ไม่สามารถลบกรมธรรม์เลขที่ ${claimNumber} ได้`,
+			};
+		}
+	} catch (error: any) {
+		console.error("Error deleting insurance policy:", error);
+		return { status: false, message: error.message || "เกิดข้อผิดพลาดในการเชื่อมต่อ/ประมวลผลข้อมูล" };
+	}
+}
+
 function getAuthToken() {
   return sessionStorage.getItem("access_token") || "";
 }
@@ -806,5 +946,9 @@ export {
   updateSubmission,
   deleteSubmission,
   updateHeadingStatus,
- 
+     createInsurancePolicy,
+    getAllInsurancePolicies,
+    getInsurancePolicyByClaimNumber,
+    updateInsurancePolicy,
+    deleteInsurancePolicy,
 };

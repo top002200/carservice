@@ -33,6 +33,12 @@ export interface BillData {
     taxgo3: number | null;
     taxgo4: number | null;
 
+    // ✅ ฟิลด์ใหม่: วันที่ที่เกี่ยวข้องกับภาษี (Optional Date String)
+    taxdaydate1: string | null;
+    taxdaydate2: string | null;
+    taxdaydate3: string | null;
+    taxdaydate4: string | null;
+
     // ข้อมูลตรวจสอบ
     check1: number | null;
     check2: number | null;
@@ -50,7 +56,7 @@ export interface BillData {
     refer2: string;
     refer3: string;
     refer4: string;
-    typerefer1: string;
+    typerefer1: string; // หมายเหตุ: ใน Go Model เป็น *float64 แต่ใน TS ยังคงเป็น string ตามที่คุณให้มา
     typerefer2: string;
     typerefer3: string;
     typerefer4: string;
@@ -83,16 +89,16 @@ export interface BillData {
     // ----------------------------------------------------
     // ✅ ฟิลด์ที่เพิ่มเข้ามาเพื่อแก้ไข Error ใน ModalPay.tsx
     // ----------------------------------------------------
-    
+
     /** วันที่บิล (สำหรับกรณีที่ต่างจาก created_at) */
-    bill_date?: string; 
+    bill_date?: string;
 
     /** สำหรับ note จาก payment (Error: payment_note does not exist) */
-    payment_note?: string; 
-    
+    payment_note?: string;
+
     /** สำหรับ status (ถ้ามีการใช้งาน payment_status ในโค้ด) */
-    payment_status?: string; 
-    
+    payment_status?: string;
+
     // ----------------------------------------------------
 
     // Optional timestamps
@@ -104,5 +110,5 @@ export interface BillData {
     adjustment_amount?: number;
     
     // เพิ่ม Index Signature เพื่อป้องกัน Error ในกรณีที่มีการเข้าถึง property ที่ไม่ได้ระบุไว้
-    [key: string]: any; 
+    [key: string]: any;
 }

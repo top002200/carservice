@@ -33,6 +33,11 @@ type Bill struct {
 	Taxgo3 *float64 `json:"taxgo3,omitempty"`
 	Taxgo4 *float64 `json:"taxgo4,omitempty"`
 
+	Taxdaydate1 *time.Time `json:"taxdaydate1,omitempty"` 
+	Taxdaydate2 *time.Time `json:"taxdaydate2,omitempty"`
+	Taxdaydate3 *time.Time `json:"taxdaydate3,omitempty"`
+	Taxdaydate4 *time.Time `json:"taxdaydate4,omitempty"`
+
 	// ข้อมูลตรวจสอบ
 	Check1 *float64 `json:"check1,omitempty"`
 	Check2 *float64 `json:"check2,omitempty"`

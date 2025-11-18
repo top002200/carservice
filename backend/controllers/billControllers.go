@@ -137,6 +137,7 @@ func CreateBill(c *gin.Context) {
 	bill.UpdatedAt = time.Now()
 
 	// ✅ ตั้งค่าดีฟอลต์ (กัน error กรณี client ไม่ส่ง field)
+	// หมายเหตุ: ฟิลด์ *time.Time ไม่ต้องตั้ง default เพราะ nil คือค่า default ที่ต้องการแล้ว
 	if bill.Amount2 == nil {
 		var zero float64 = 0
 		bill.Amount2 = &zero
@@ -301,6 +302,20 @@ func UpdateBill(c *gin.Context) {
 	}
 	if updateData.Taxgo4 != nil {
 		existingBill.Taxgo4 = updateData.Taxgo4
+	}
+
+	// ✅ Update Taxdaydate fields (Checking for nil since they are *time.Time)
+	if updateData.Taxdaydate1 != nil {
+		existingBill.Taxdaydate1 = updateData.Taxdaydate1
+	}
+	if updateData.Taxdaydate2 != nil {
+		existingBill.Taxdaydate2 = updateData.Taxdaydate2
+	}
+	if updateData.Taxdaydate3 != nil {
+		existingBill.Taxdaydate3 = updateData.Taxdaydate3
+	}
+	if updateData.Taxdaydate4 != nil {
+		existingBill.Taxdaydate4 = updateData.Taxdaydate4
 	}
 
 	// Update check information
